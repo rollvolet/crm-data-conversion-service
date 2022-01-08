@@ -1,3 +1,4 @@
+# coding: utf-8
 require 'tiny_tds'
 require 'linkeddata'
 
@@ -12,8 +13,11 @@ BOOLEAN_DT = RDF::URI('http://mu.semte.ch/vocabularies/typed-literals/boolean')
 
 OUTPUT_FOLDER = '/data'
 
-client = TinyTds::Client.new username: 'sa', password: ENV['SQL_PASSWORD'], host: 'sql-database', database: 'Klanten'
-log.info "Connected to SQL database" if client.active?
+def create_sql_client
+  client = TinyTds::Client.new username: 'sa', password: ENV['SQL_PASSWORD'], host: 'sql-database', database: 'Klanten'
+  log.info "Connected to SQL database" if client.active?
+  client
+end
 
 def fetch_vat_rates
   vat_rate_map = {}
@@ -21,6 +25,20 @@ def fetch_vat_rates
   vat_rates.each { |solution| vat_rate_map[solution[:id].value] = solution[:uri] }
   log.info "Build VAT rate map #{vat_rate_map.inspect}"
   vat_rate_map
+end
+
+def fetch_product_units
+  {
+    'NONE' => { nl: '', fr: '', separator: '' },
+    'PIECE' => { nl: 'stuk(s)', fr: 'pièce(s)', separator: ' ' },
+    'M' => { nl: 'm', fr: 'm', separator: '' },
+    'M2' => { nl: 'm²', fr: 'm²', separator: '' },
+    'PAIR' => { nl: 'paar', fr: 'paire(s)', separator: ' ' }
+  }
+end
+
+def format_decimal(number)
+  if number then sprintf("%0.2f", number).gsub(/(\d)(?=\d{3}+\.)/, '\1 ').gsub(/\./, ',') else '' end
 end
 
 def calculation_line_per_offerline client
@@ -129,17 +147,82 @@ def invoicelines_to_triplestore client
   RDF::Writer.open(file_path, format: :ttl) { |writer| writer << graph }
 end
 
+def supplements_to_triplestore client
+  graph = RDF::Graph.new
+  vat_rate_map = fetch_vat_rates()
+  product_units = fetch_product_units()
+
+  query = "SELECT f.MuntEenheid, f.BtwId, f.KlantTaalID, u.Code, s.FactuurExtraID, s.FactuurID, s.Volgnummer, s.Aantal, s.NettoBedrag, s.Omschrijving"
+  query += " FROM TblFactuurExtra s"
+  query += " INNER JOIN TblFactuur f ON f.FactuurId = s.FactuurID"
+  query += " LEFT JOIN TblProductUnit u ON u.Id = s.EenheidId"
+  query += " WHERE f.MuntEenheid = 'EUR'"
+  supplements = client.execute(query)
+
+  count = 0
+  supplements.each_with_index do |supplement, i|
+    uuid = generate_uuid()
+    invoiceline_uri = RDF::URI(BASE_URI % { :resource => 'invoicelines', :id => uuid })
+    invoice_uri = RDF::URI(BASE_URI % { :resource => 'invoices', :id => supplement['FactuurID'] })
+    amount = RDF::Literal.new(BigDecimal((supplement['NettoBedrag'] || 0).to_s))
+    vat_rate = vat_rate_map[supplement['BtwId'].to_s]
+
+    logger.warn "Cannot find VAT rate for ID #{supplement['BtwId']}" if (vat_rate.nil?)
+
+    nb = supplement['Aantal']
+    nb_display = ''
+    if nb and nb > 0
+      nb_display = if nb % 1 == 0 then nb.floor else format_decimal(nb) end
+    end
+    unit = product_units[supplement['Code']] || product_units['NONE']
+    unit_separator = unit[:separator]
+    unit_label = if supplement['KlantTaalID'] == 2 then unit[:fr] else unit[:nl] end
+
+    description = "#{nb_display}#{unit_separator}#{unit_label} #{supplement['Omschrijving'] || ''}".strip
+
+    graph << RDF.Statement(invoiceline_uri, RDF.type, CRM.Invoiceline)
+    graph << RDF.Statement(invoiceline_uri, DCT.type, CRM.AccessInvoiceSupplement)
+    graph << RDF.Statement(invoiceline_uri, MU_CORE.uuid, uuid)
+    graph << RDF.Statement(invoiceline_uri, SCHEMA.amount, amount)
+    graph << RDF.Statement(invoiceline_uri, SCHEMA.currency, supplement['MuntEenheid'])
+    graph << RDF.Statement(invoiceline_uri, DCT.identifier, supplement['FactuurExtraID'].to_s)
+    graph << RDF.Statement(invoiceline_uri, DCT.description, description)
+    graph << RDF.Statement(invoiceline_uri, SCHEMA.position, supplement['Volgnummer'])
+    graph << RDF.Statement(invoiceline_uri, PRICE.hasVatRate, vat_rate)
+    graph << RDF.Statement(invoiceline_uri, DCT.isPartOf, invoice_uri)
+
+    # Legacy IDs useful for future conversions
+    graph << RDF.Statement(invoice_uri, DCT.identifier, supplement['FactuurID'].to_s)
+
+    count = i
+  end
+
+  log.info "Generated #{count} invoicelines for supplements"
+  file_path = File.join(OUTPUT_FOLDER, DateTime.now.strftime("%Y%m%d%H%M%S") + "-supplements-invoicelines.ttl")
+  log.info "Writing generated data to file #{file_path}"
+  RDF::Writer.open(file_path, format: :ttl) { |writer| writer << graph }
+end
+
 post '/legacy-calculation-lines' do
-  calculation_line_per_offerline(client)
+  sql_client = create_sql_client()
+  calculation_line_per_offerline(sql_client)
   status 204
 end
 
 post '/offerlines-to-triplestore' do
-  offerlines_to_triplestore(client)
+  sql_client = create_sql_client()
+  offerlines_to_triplestore(sql_client)
   status 204
 end
 
 post '/invoicelines-to-triplestore' do
-  invoicelines_to_triplestore(client)
+  sql_client = create_sql_client()
+  invoicelines_to_triplestore(sql_client)
+  status 204
+end
+
+post '/supplements-to-triplestore' do
+  sql_client = create_sql_client()
+  supplements_to_triplestore(sql_client)
   status 204
 end
