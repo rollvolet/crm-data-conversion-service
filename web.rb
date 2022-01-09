@@ -12,6 +12,7 @@ BASE_URI = 'http://data.rollvolet.be/%{resource}/%{id}'
 BOOLEAN_DT = RDF::URI('http://mu.semte.ch/vocabularies/typed-literals/boolean')
 
 OUTPUT_FOLDER = '/data'
+ROLLVOLET_GRAPH = 'http://mu.semte.ch/graphs/rollvolet'
 
 def create_sql_client
   client = TinyTds::Client.new username: 'sa', password: ENV['SQL_PASSWORD'], host: 'sql-database', database: 'Klanten'
@@ -39,6 +40,13 @@ end
 
 def format_decimal(number)
   if number then sprintf("%0.2f", number).gsub(/(\d)(?=\d{3}+\.)/, '\1 ').gsub(/\./, ',') else '' end
+end
+
+def write_graph(filename, graph)
+  file_path = File.join(OUTPUT_FOLDER, "#{filename}.ttl")
+  log.info "Writing generated data to file #{file_path}"
+  RDF::Writer.open(file_path, format: :ttl) { |writer| writer << graph }
+  File.open("#{OUTPUT_FOLDER}/#{filename}.graph", "w+") { |f| f.puts(ROLLVOLET_GRAPH) }
 end
 
 def calculation_line_per_offerline client
@@ -110,6 +118,7 @@ end
 def invoicelines_to_triplestore client
   graph = RDF::Graph.new
   vat_rate_map = fetch_vat_rates()
+  timestamp = DateTime.now.strftime("%Y%m%d%H%M%S")
 
   invoicelines = client.execute("SELECT l.Id, l.OrderId, l.InvoiceId, l.VatRateId, l.Currency, l.Amount, l.SequenceNumber, l.Description FROM TblInvoiceline l")
   count = 0
@@ -138,13 +147,19 @@ def invoicelines_to_triplestore client
     graph << RDF.Statement(order_uri, DCT.identifier, invoiceline['OrderId'].to_s)
     graph << RDF.Statement(invoice_uri, DCT.identifier, invoiceline['InvoiceId'].to_s)
 
+    if ((i + 1) % 1000 == 0)
+      log.info "Processed #{i} records. Will write to file"
+      write_graph("#{timestamp}-invoicelines-#{i}-sensitive", graph)
+      graph = RDF::Graph.new
+    end
+
     count = i
   end
 
+  # Writing last iteration to file
+  write_graph("#{timestamp}-invoicelines-#{count}-sensitive", graph)
+
   log.info "Generated #{count} invoicelines"
-  file_path = File.join(OUTPUT_FOLDER, DateTime.now.strftime("%Y%m%d%H%M%S") + "-invoicelines.ttl")
-  log.info "Writing generated data to file #{file_path}"
-  RDF::Writer.open(file_path, format: :ttl) { |writer| writer << graph }
 end
 
 def supplements_to_triplestore client
