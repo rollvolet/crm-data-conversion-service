@@ -166,6 +166,7 @@ def supplements_to_triplestore client
   graph = RDF::Graph.new
   vat_rate_map = fetch_vat_rates()
   product_units = fetch_product_units()
+  timestamp = DateTime.now.strftime("%Y%m%d%H%M%S")
 
   query = "SELECT f.MuntEenheid, f.BtwId, f.KlantTaalID, u.Code, s.FactuurExtraID, s.FactuurID, s.Volgnummer, s.Aantal, s.NettoBedrag, s.Omschrijving"
   query += " FROM TblFactuurExtra s"
@@ -209,13 +210,19 @@ def supplements_to_triplestore client
     # Legacy IDs useful for future conversions
     graph << RDF.Statement(invoice_uri, DCT.identifier, supplement['FactuurID'].to_s)
 
+    if ((i + 1) % 1000 == 0)
+      log.info "Processed #{i + 1} records. Will write to file"
+      write_graph("#{timestamp}-supplements-invoicelines-#{i + 1}-sensitive", graph)
+      graph = RDF::Graph.new
+    end
+
     count = i
   end
 
-  log.info "Generated #{count} invoicelines for supplements"
-  file_path = File.join(OUTPUT_FOLDER, DateTime.now.strftime("%Y%m%d%H%M%S") + "-supplements-invoicelines.ttl")
-  log.info "Writing generated data to file #{file_path}"
-  RDF::Writer.open(file_path, format: :ttl) { |writer| writer << graph }
+  # Writing last iteration to file
+  write_graph("#{timestamp}-invoicelines-#{count + 1}-sensitive", graph)
+
+  log.info "Generated #{count + 1} invoicelines"
 end
 
 post '/legacy-calculation-lines' do
