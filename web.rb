@@ -15,7 +15,7 @@ ROLLVOLET_GRAPH = 'http://mu.semte.ch/graphs/rollvolet'
 
 def create_sql_client
   client = TinyTds::Client.new username: 'sa', password: ENV['SQL_PASSWORD'], host: 'sql-database', database: 'Klanten'
-  log.info "Connected to SQL database" if client.active?
+  Mu.log.info "Connected to SQL database" if client.active?
   client
 end
 
@@ -23,7 +23,7 @@ def fetch_vat_rates
   vat_rate_map = {}
   vat_rates = Mu.query("SELECT ?id ?uri FROM <http://mu.semte.ch/graphs/public> WHERE { ?uri a <http://data.rollvolet.be/vocabularies/pricing/VatRate> ; <http://purl.org/dc/terms/identifier> ?id . }")
   vat_rates.each { |solution| vat_rate_map[solution[:id].value] = solution[:uri] }
-  log.info "Build VAT rate map #{vat_rate_map.inspect}"
+  Mu.log.info "Build VAT rate map #{vat_rate_map.inspect}"
   vat_rate_map
 end
 
@@ -43,7 +43,7 @@ end
 
 def write_graph(filename, graph)
   file_path = File.join(OUTPUT_FOLDER, "#{filename}.ttl")
-  log.info "Writing generated data to file #{file_path}"
+  Mu.log.info "Writing generated data to file #{file_path}"
   RDF::Writer.open(file_path, format: :ttl) { |writer| writer << graph }
   File.open("#{OUTPUT_FOLDER}/#{filename}.graph", "w+") { |f| f.puts(ROLLVOLET_GRAPH) }
 end
@@ -71,9 +71,9 @@ def calculation_line_per_offerline client
     count = i
   end
 
-  log.info "Generated #{count} calculation lines"
+  Mu.log.info "Generated #{count} calculation lines"
   file_path = File.join(OUTPUT_FOLDER, DateTime.now.strftime("%Y%m%d%H%M%S") + "-calculation-lines.ttl")
-  log.info "Writing generated data to file #{file_path}"
+  Mu.log.info "Writing generated data to file #{file_path}"
   RDF::Writer.open(file_path, format: :ttl) { |writer| writer << graph }
 end
 
@@ -90,7 +90,7 @@ def offerlines_to_triplestore client
     amount = RDF::Literal.new(BigDecimal(offerline['Amount'].to_s))
     vat_rate = vat_rate_map[offerline['VatRateId'].to_s]
 
-    logger.warn "Cannot find VAT rate for ID #{offerline["VatRateId"]}" if (vat_rate.nil?)
+    Mu.log.warn "Cannot find VAT rate for ID #{offerline["VatRateId"]}" if (vat_rate.nil?)
 
     graph << RDF.Statement(offerline_uri, RDF.type, CRM.Offerline)
     graph << RDF.Statement(offerline_uri, MU_CORE.uuid, uuid)
@@ -108,9 +108,9 @@ def offerlines_to_triplestore client
     count = i
   end
 
-  log.info "Generated #{count} offerlines"
+  Mu.log.info "Generated #{count} offerlines"
   file_path = File.join(OUTPUT_FOLDER, DateTime.now.strftime("%Y%m%d%H%M%S") + "-offerlines.ttl")
-  log.info "Writing generated data to file #{file_path}"
+  Mu.log.info "Writing generated data to file #{file_path}"
   RDF::Writer.open(file_path, format: :ttl) { |writer| writer << graph }
 end
 
@@ -129,7 +129,7 @@ def invoicelines_to_triplestore client
     amount = RDF::Literal.new(BigDecimal(invoiceline['Amount'].to_s))
     vat_rate = vat_rate_map[invoiceline['VatRateId'].to_s]
 
-    logger.warn "Cannot find VAT rate for ID #{invoiceline["VatRateId"]}" if (vat_rate.nil?)
+    Mu.log.warn "Cannot find VAT rate for ID #{invoiceline["VatRateId"]}" if (vat_rate.nil?)
 
     graph << RDF.Statement(invoiceline_uri, RDF.type, CRM.Invoiceline)
     graph << RDF.Statement(invoiceline_uri, MU_CORE.uuid, uuid)
@@ -147,7 +147,7 @@ def invoicelines_to_triplestore client
     graph << RDF.Statement(invoice_uri, DCT.identifier, invoiceline['InvoiceId'].to_s)
 
     if ((i + 1) % 1000 == 0)
-      log.info "Processed #{i} records. Will write to file"
+      Mu.log.info "Processed #{i} records. Will write to file"
       write_graph("#{timestamp}-invoicelines-#{i}-sensitive", graph)
       graph = RDF::Graph.new
     end
@@ -158,7 +158,7 @@ def invoicelines_to_triplestore client
   # Writing last iteration to file
   write_graph("#{timestamp}-invoicelines-#{count}-sensitive", graph)
 
-  log.info "Generated #{count} invoicelines"
+  Mu.log.info "Generated #{count} invoicelines"
 end
 
 def supplements_to_triplestore client
@@ -182,7 +182,7 @@ def supplements_to_triplestore client
     amount = RDF::Literal.new(BigDecimal((supplement['NettoBedrag'] || 0).to_s))
     vat_rate = vat_rate_map[supplement['BtwId'].to_s]
 
-    logger.warn "Cannot find VAT rate for ID #{supplement['BtwId']}" if (vat_rate.nil?)
+    Mu.log.warn "Cannot find VAT rate for ID #{supplement['BtwId']}" if (vat_rate.nil?)
 
     nb = supplement['Aantal']
     nb_display = ''
@@ -210,7 +210,7 @@ def supplements_to_triplestore client
     graph << RDF.Statement(invoice_uri, DCT.identifier, supplement['FactuurID'].to_s)
 
     if ((i + 1) % 1000 == 0)
-      log.info "Processed #{i + 1} records. Will write to file"
+      Mu.log.info "Processed #{i + 1} records. Will write to file"
       write_graph("#{timestamp}-supplements-invoicelines-#{i + 1}-sensitive", graph)
       graph = RDF::Graph.new
     end
@@ -221,7 +221,7 @@ def supplements_to_triplestore client
   # Writing last iteration to file
   write_graph("#{timestamp}-invoicelines-#{count + 1}-sensitive", graph)
 
-  log.info "Generated #{count + 1} invoicelines"
+  Mu.log.info "Generated #{count + 1} invoicelines"
 end
 
 post '/legacy-calculation-lines' do
