@@ -54,7 +54,7 @@ def calculation_line_per_offerline client
   offerlines = client.execute("SELECT l.Id, l.Amount, l.Currency FROM TblOfferline l")
   count = 0
   offerlines.each_with_index do |offerline, i|
-    uuid = generate_uuid()
+    uuid = Mu.generate_uuid()
     calc_line_uri = RDF::URI(BASE_URI % { :resource => 'calculation-lines', :id => uuid })
     offerline_uri = RDF::URI(BASE_URI % { :resource => 'offerlines', :id => offerline['Id'] })
     amount = RDF::Literal.new(BigDecimal(offerline['Amount'].to_s))
@@ -84,7 +84,7 @@ def offerlines_to_triplestore client
   offerlines = client.execute("SELECT l.Id, l.OfferId, l.VatRateId, l.Currency, l.Amount, l.SequenceNumber, l.Description FROM TblOfferline l")
   count = 0
   offerlines.each_with_index do |offerline, i|
-    uuid = generate_uuid()
+    uuid = Mu.generate_uuid()
     offerline_uri = RDF::URI(BASE_URI % { :resource => 'offerlines', :id => uuid })
     offer_uri = RDF::URI(BASE_URI % { :resource => 'offers', :id => offerline['OfferId'] })
     amount = RDF::Literal.new(BigDecimal(offerline['Amount'].to_s))
@@ -122,7 +122,7 @@ def invoicelines_to_triplestore client
   invoicelines = client.execute("SELECT l.Id, l.OrderId, l.InvoiceId, l.VatRateId, l.Currency, l.Amount, l.SequenceNumber, l.Description FROM TblInvoiceline l")
   count = 0
   invoicelines.each_with_index do |invoiceline, i|
-    uuid = generate_uuid()
+    uuid = Mu.generate_uuid()
     invoiceline_uri = RDF::URI(BASE_URI % { :resource => 'invoicelines', :id => uuid })
     order_uri = RDF::URI(BASE_URI % { :resource => 'orders', :id => invoiceline['OrderId'] })
     invoice_uri = RDF::URI(BASE_URI % { :resource => 'invoices', :id => invoiceline['InvoiceId'] })
@@ -176,7 +176,7 @@ def supplements_to_triplestore client
 
   count = 0
   supplements.each_with_index do |supplement, i|
-    uuid = generate_uuid()
+    uuid = Mu.generate_uuid()
     invoiceline_uri = RDF::URI(BASE_URI % { :resource => 'invoicelines', :id => uuid })
     invoice_uri = RDF::URI(BASE_URI % { :resource => 'invoices', :id => supplement['FactuurID'] })
     amount = RDF::Literal.new(BigDecimal((supplement['NettoBedrag'] || 0).to_s))
