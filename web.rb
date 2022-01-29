@@ -1,6 +1,5 @@
 # coding: utf-8
 require 'tiny_tds'
-require 'linkeddata'
 
 DCT = RDF::Vocabulary.new("http://purl.org/dc/terms/")
 SCHEMA = RDF::Vocabulary.new("http://schema.org/")
@@ -22,7 +21,7 @@ end
 
 def fetch_vat_rates
   vat_rate_map = {}
-  vat_rates = query("SELECT ?id ?uri FROM <http://mu.semte.ch/graphs/public> WHERE { ?uri a <http://data.rollvolet.be/vocabularies/pricing/VatRate> ; <http://purl.org/dc/terms/identifier> ?id . }")
+  vat_rates = Mu.query("SELECT ?id ?uri FROM <http://mu.semte.ch/graphs/public> WHERE { ?uri a <http://data.rollvolet.be/vocabularies/pricing/VatRate> ; <http://purl.org/dc/terms/identifier> ?id . }")
   vat_rates.each { |solution| vat_rate_map[solution[:id].value] = solution[:uri] }
   log.info "Build VAT rate map #{vat_rate_map.inspect}"
   vat_rate_map
