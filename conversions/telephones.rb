@@ -3,7 +3,7 @@ def telephones_to_triplestore client
   country_map = fetch_countries()
   timestamp = DateTime.now.strftime("%Y%m%d%H%M%S")
 
-  telephones = client.execute("SELECT t.DataId, t.LandId, t.Zonenr, t.Telnr, t.TelMemo, t.Volgorde, c.DataType FROM tblTel t INNER JOIN tblData c ON c.DataID = t.DataId")
+  telephones = client.execute("SELECT t.DataId, t.TelTypeId, t.LandId, t.Zonenr, t.Telnr, t.TelMemo, t.Volgorde, c.DataType FROM tblTel t INNER JOIN tblData c ON c.DataID = t.DataId")
   count = 0
   telephones.each_with_index do |telephone, i|
     uuid = Mu.generate_uuid()
@@ -13,6 +13,7 @@ def telephones_to_triplestore client
     vcard_type = 'buildings' if telephone['DataType'] == 'GEB'
     vcard_uri = RDF::URI(BASE_URI % { :resource => vcard_type, :id => telephone['DataId'] })
     tel_number = "#{telephone['Zonenr']}#{telephone['Telnr']}".gsub(/\D/, '')
+    tel_type = if telephone['TelTypeId'] == 2 then VCARD.Fax else VCARD.Voice end
     country = country_map[telephone['LandId'].to_s]
     position = if telephone['Volgorde'] then telephone['Volgorde'] else 1 end
 
@@ -23,6 +24,7 @@ def telephones_to_triplestore client
     graph << RDF.Statement(telephone_uri, VCARD.hasNote, telephone['TelMemo']) if telephone['TelMemo']
     graph << RDF.Statement(telephone_uri, VCARD.hasTelephone, vcard_uri)
     graph << RDF.Statement(telephone_uri, VCARD.hasCountryName, country)
+    graph << RDF.Statement(telephone_uri, DCT.type, tel_type)
 
     # Legacy IDs useful for future conversions
     graph << RDF.Statement(vcard_uri, DCT.identifier, telephone['DataId'].to_s)
