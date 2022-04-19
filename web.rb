@@ -7,6 +7,7 @@ PROV = RDF::Vocabulary.new("http://www.w3.org/ns/prov#")
 CRM = RDF::Vocabulary.new("http://data.rollvolet.be/vocabularies/crm/")
 PRICE = RDF::Vocabulary.new("http://data.rollvolet.be/vocabularies/pricing/")
 VCARD = RDF::Vocabulary.new("http://www.w3.org/2006/vcard/ns#")
+NCAL = RDF::Vocabulary.new("http://www.semanticdesktop.org/ontologies/2007/04/02/ncal#")
 
 BASE_URI = 'http://data.rollvolet.be/%{resource}/%{id}'
 BOOLEAN_DT = RDF::URI('http://mu.semte.ch/vocabularies/typed-literals/boolean')
@@ -32,6 +33,7 @@ require_relative 'conversions/codelists'
 require_relative 'conversions/offerlines'
 require_relative 'conversions/invoicelines'
 require_relative 'conversions/telephones'
+require_relative 'conversions/calendar-events'
 
 post '/legacy-calculation-lines' do
   sql_client = create_sql_client()
@@ -60,5 +62,23 @@ end
 post '/telephones-to-triplestore' do
   sql_client = create_sql_client()
   telephones_to_triplestore(sql_client)
+  status 204
+end
+
+post '/request-calendar-events-to-triplestore' do
+  sql_client = create_sql_client()
+  request_calendar_events_to_triplestore(sql_client)
+  status 204
+end
+
+post '/intervention-calendar-events-to-triplestore' do
+  sql_client = create_sql_client()
+  intervention_calendar_events_to_triplestore(sql_client)
+  status 204
+end
+
+post '/order-calendar-events-to-triplestore' do
+  sql_client = create_sql_client()
+  order_calendar_events_to_triplestore(sql_client)
   status 204
 end
