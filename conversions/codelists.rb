@@ -24,3 +24,11 @@ def fetch_product_units
     'PAIR' => { nl: 'paar', fr: 'paire(s)', separator: ' ' }
   }
 end
+
+def fetch_employees
+  employee_map = {}
+  employees = Mu.query("SELECT ?id ?uri FROM <http://mu.semte.ch/graphs/rollvolet> WHERE { ?uri a <http://www.w3.org/ns/person#Person> ; <http://xmlns.com/foaf/0.1/firstName> ?id . }")
+  employees.each { |solution| employee_map[solution[:id].value] = solution[:uri] }
+  Mu.log.info "Build employee map #{employee_map.inspect}"
+  employee_map
+end

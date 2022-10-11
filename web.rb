@@ -10,7 +10,6 @@ VCARD = RDF::Vocabulary.new("http://www.w3.org/2006/vcard/ns#")
 NCAL = RDF::Vocabulary.new("http://www.semanticdesktop.org/ontologies/2007/04/02/ncal#")
 FOAF = RDF::Vocabulary.new("http://xmlns.com/foaf/0.1/")
 FRAPO = RDF::Vocabulary.new("http://purl.org/cerif/frapo/")
-PROV = RDF::Vocabulary.new("http://www.w3.org/ns/prov#")
 PERSON = RDF::Vocabulary.new("http://www.w3.org/ns/person#")
 
 BASE_URI = 'http://data.rollvolet.be/%{resource}/%{id}'
@@ -39,6 +38,7 @@ require_relative 'conversions/invoicelines'
 require_relative 'conversions/telephones'
 require_relative 'conversions/calendar-events'
 require_relative 'conversions/employees'
+require_relative 'conversions/working-hours'
 
 post '/legacy-calculation-lines' do
   sql_client = create_sql_client()
@@ -91,5 +91,11 @@ end
 post '/employees-to-triplestore' do
   sql_client = create_sql_client()
   employees_to_triplestore(sql_client)
+  status 204
+end
+
+post '/working-hours-to-triplestore' do
+  sql_client = create_sql_client()
+  working_hours_to_triplestore(sql_client)
   status 204
 end
