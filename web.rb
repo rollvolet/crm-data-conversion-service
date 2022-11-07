@@ -11,6 +11,7 @@ NCAL = RDF::Vocabulary.new("http://www.semanticdesktop.org/ontologies/2007/04/02
 FOAF = RDF::Vocabulary.new("http://xmlns.com/foaf/0.1/")
 FRAPO = RDF::Vocabulary.new("http://purl.org/cerif/frapo/")
 PERSON = RDF::Vocabulary.new("http://www.w3.org/ns/person#")
+DOSSIER = RDF::Vocabulary.new("https://data.vlaanderen.be/ns/dossier#")
 
 BASE_URI = 'http://data.rollvolet.be/%{resource}/%{id}'
 BOOLEAN_DT = RDF::URI('http://mu.semte.ch/vocabularies/typed-literals/boolean')
@@ -31,6 +32,13 @@ def write_graph(filename, graph)
   File.open("#{OUTPUT_FOLDER}/#{filename}.graph", "w+") { |f| f.puts(ROLLVOLET_GRAPH) }
 end
 
+def write_query(filename, sparql_query)
+  file_path = File.join(OUTPUT_FOLDER, "#{filename}.sparql")
+  Mu.log.info "Writing SPARQL query to file #{file_path}"
+  File.open(file_path, "w+") { |f| f.puts(sparql_query) }
+end
+
+
 require_relative 'conversions/utils'
 require_relative 'conversions/codelists'
 require_relative 'conversions/offerlines'
@@ -39,6 +47,7 @@ require_relative 'conversions/telephones'
 require_relative 'conversions/calendar-events'
 require_relative 'conversions/employees'
 require_relative 'conversions/working-hours'
+require_relative 'conversions/cases'
 
 post '/legacy-calculation-lines' do
   sql_client = create_sql_client()
@@ -97,5 +106,11 @@ end
 post '/working-hours-to-triplestore' do
   sql_client = create_sql_client()
   working_hours_to_triplestore(sql_client)
+  status 204
+end
+
+post '/cases-to-triplestore' do
+  sql_client = create_sql_client()
+  cases_to_triplestore(sql_client)
   status 204
 end
