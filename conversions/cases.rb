@@ -1,11 +1,11 @@
 def cases_to_triplestore client
   timestamp = DateTime.now.strftime("%Y%m%d%H%M%S")
 
-#  request_cases_to_triplestore client, timestamp
+  request_cases_to_triplestore client, timestamp
   intervention_cases_to_triplestore client, timestamp
-#  isolated_invoice_cases_to_triplestore client, timestamp
+  isolated_invoice_cases_to_triplestore client, timestamp
 
-#  rename_existing_cases_sparql_query
+  rename_existing_cases_sparql_query
 end
 
 # Create a case for every request
