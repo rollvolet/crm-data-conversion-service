@@ -12,6 +12,10 @@ FOAF = RDF::Vocabulary.new("http://xmlns.com/foaf/0.1/")
 FRAPO = RDF::Vocabulary.new("http://purl.org/cerif/frapo/")
 PERSON = RDF::Vocabulary.new("http://www.w3.org/ns/person#")
 DOSSIER = RDF::Vocabulary.new("https://data.vlaanderen.be/ns/dossier#")
+P2PO_INVOICE = RDF::Vocabulary.new("https://purl.org/p2p-o/invoice#")
+P2PO_DOCUMENT = RDF::Vocabulary.new("https://purl.org/p2p-o/document#")
+P2PO_PRICE = RDF::Vocabulary.new("https://purl.org/p2p-o/price#")
+SKOS = RDF::Vocabulary.new("http://www.w3.org/2004/02/skos/core#")
 
 BASE_URI = 'http://data.rollvolet.be/%{resource}/%{id}'
 BOOLEAN_DT = RDF::URI('http://mu.semte.ch/vocabularies/typed-literals/boolean')
@@ -48,6 +52,7 @@ require_relative 'conversions/calendar-events'
 require_relative 'conversions/employees'
 require_relative 'conversions/working-hours'
 require_relative 'conversions/cases'
+require_relative 'conversions/invoices'
 
 post '/legacy-calculation-lines' do
   sql_client = create_sql_client()
@@ -112,5 +117,17 @@ end
 post '/cases-to-triplestore' do
   sql_client = create_sql_client()
   cases_to_triplestore(sql_client)
+  status 204
+end
+
+post '/deposit-invoices-to-triplestore' do
+  sql_client = create_sql_client()
+  deposit_invoices_to_triplestore(sql_client)
+  status 204
+end
+
+post '/invoices-to-triplestore' do
+  sql_client = create_sql_client()
+  invoices_to_triplestore(sql_client)
   status 204
 end

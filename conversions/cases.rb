@@ -35,7 +35,7 @@ LEFT JOIN TblFactuur f ON f.OfferteID = o.OfferteID AND f.MuntEenheid = 'EUR'
     graph << RDF.Statement(request_uri, DCT.identifier, request['AanvraagID'].to_s)
 
     if request['KlantID']
-      customer_uri = RDF::URI(BASE_URI % { :resource => 'customers', :id => request['DataID'].to_s })
+      customer_uri = RDF::URI(BASE_URI % { :resource => 'customers', :id => request['KlantID'].to_s })
       graph << RDF.Statement(case_uri, SCHEMA.customer, customer_uri)
       graph << RDF.Statement(customer_uri, DCT.identifier, request['DataID'].to_s)
       graph << RDF.Statement(customer_uri, VCARD.hasUID, request['KlantID'].to_i)
@@ -110,8 +110,8 @@ LEFT JOIN TblFactuur f ON f.InterventionId = l.Id  AND f.MuntEenheid = 'EUR'
     graph << RDF.Statement(case_uri, MU_EXT.intervention, intervention_uri)
     graph << RDF.Statement(intervention_uri, DCT.identifier, intervention['Id'].to_s)
 
-    if request['CustomerId']
-      customer_uri = RDF::URI(BASE_URI % { :resource => 'customers', :id => intervention['DataID'].to_s })
+    if intervention['CustomerId']
+      customer_uri = RDF::URI(BASE_URI % { :resource => 'customers', :id => intervention['CustomerId'].to_s })
       graph << RDF.Statement(case_uri, SCHEMA.customer, customer_uri)
       graph << RDF.Statement(customer_uri, DCT.identifier, intervention['DataID'].to_s)
       graph << RDF.Statement(customer_uri, VCARD.hasUID, intervention['CustomerId'].to_i)
@@ -154,7 +154,7 @@ def isolated_invoice_cases_to_triplestore client, timestamp
   graph = RDF::Graph.new
 
   invoices = client.execute(%{
-SELECT l.FactuurId, l.KlantID, c.DataID as ContactId, b.DataID as GebouwId
+SELECT l.FactuurId, l.KlantID, k.DataID, c.DataID as ContactId, b.DataID as GebouwId
 FROM TblFactuur l
 LEFT JOIN tblData k ON l.KlantID = k.ID AND k.DataType = 'KLA'
 LEFT JOIN tblData c ON l.ContactID  = c.ID AND l.KlantID = c.ParentID AND c.DataType = 'CON'
@@ -174,8 +174,8 @@ WHERE l.MuntEenheid = 'EUR' AND l.InterventionId IS NULL AND l.OfferteID IS NULL
     graph << RDF.Statement(case_uri, MU_EXT.invoice, invoice_uri)
     graph << RDF.Statement(invoice_uri, DCT.identifier, invoice['FactuurId'].to_s)
 
-    if request['KlantID']
-      customer_uri = RDF::URI(BASE_URI % { :resource => 'customers', :id => invoice['DataID'].to_s })
+    if invoice['KlantID']
+      customer_uri = RDF::URI(BASE_URI % { :resource => 'customers', :id => invoice['KlantID'].to_s })
       graph << RDF.Statement(case_uri, SCHEMA.customer, customer_uri)
       graph << RDF.Statement(customer_uri, DCT.identifier, invoice['DataID'].to_s)
       graph << RDF.Statement(customer_uri, VCARD.hasUID, invoice['KlantID'].to_i)
