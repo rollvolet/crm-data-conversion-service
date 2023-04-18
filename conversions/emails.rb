@@ -31,7 +31,7 @@ def emails_to_triplestore client
         graph << RDF.Statement(email_uri, VCARD.hasEmail, vcard_uri)
 
         # Legacy IDs useful for future conversions
-        graph << RDF.Statement(vcard_uri, DCT.identifier, email['DataId'].to_s)
+        graph << RDF.Statement(vcard_uri, DCT.identifier, email['DataID'].to_s)
         graph << RDF.Statement(vcard_uri, VCARD.hasUID, email['Nummer'].to_s)
       end
     end
