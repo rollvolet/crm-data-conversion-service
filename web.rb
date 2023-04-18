@@ -45,6 +45,7 @@ require_relative 'conversions/offerlines'
 require_relative 'conversions/invoicelines'
 require_relative 'conversions/telephones'
 require_relative 'conversions/emails'
+require_relative 'conversions/customer-identifiers'
 require_relative 'conversions/calendar-events'
 require_relative 'conversions/employees'
 require_relative 'conversions/working-hours'
@@ -83,6 +84,12 @@ end
 post '/emails-to-triplestore' do
   sql_client = create_sql_client()
   emails_to_triplestore(sql_client)
+  status 204
+end
+
+post '/customer-identifiers-to-triplestore' do
+  sql_client = create_sql_client()
+  customer_identifiers_to_triplestore(sql_client)
   status 204
 end
 
