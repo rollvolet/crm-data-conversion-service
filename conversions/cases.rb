@@ -35,7 +35,7 @@ LEFT JOIN TblFactuur f ON f.OfferteID = o.OfferteID AND f.MuntEenheid = 'EUR'
     graph << RDF.Statement(request_uri, DCT.identifier, request['AanvraagID'].to_s)
 
     if request['KlantID']
-      customer_uri = RDF::URI(BASE_URI % { :resource => 'customers', :id => request['DataID'].to_s })
+      customer_uri = RDF::URI(BASE_URI % { :resource => 'customers', :id => request['KlantID'].to_s })
       graph << RDF.Statement(case_uri, SCHEMA.customer, customer_uri)
       graph << RDF.Statement(customer_uri, DCT.identifier, request['DataID'].to_s)
       graph << RDF.Statement(customer_uri, VCARD.hasUID, request['KlantID'].to_i)
@@ -111,7 +111,7 @@ LEFT JOIN TblFactuur f ON f.InterventionId = l.Id  AND f.MuntEenheid = 'EUR'
     graph << RDF.Statement(intervention_uri, DCT.identifier, intervention['Id'].to_s)
 
     if request['CustomerId']
-      customer_uri = RDF::URI(BASE_URI % { :resource => 'customers', :id => intervention['DataID'].to_s })
+      customer_uri = RDF::URI(BASE_URI % { :resource => 'customers', :id => intervention['CustomerId'].to_s })
       graph << RDF.Statement(case_uri, SCHEMA.customer, customer_uri)
       graph << RDF.Statement(customer_uri, DCT.identifier, intervention['DataID'].to_s)
       graph << RDF.Statement(customer_uri, VCARD.hasUID, intervention['CustomerId'].to_i)
@@ -175,7 +175,7 @@ WHERE l.MuntEenheid = 'EUR' AND l.InterventionId IS NULL AND l.OfferteID IS NULL
     graph << RDF.Statement(invoice_uri, DCT.identifier, invoice['FactuurId'].to_s)
 
     if request['KlantID']
-      customer_uri = RDF::URI(BASE_URI % { :resource => 'customers', :id => invoice['DataID'].to_s })
+      customer_uri = RDF::URI(BASE_URI % { :resource => 'customers', :id => invoice['KlantID'].to_s })
       graph << RDF.Statement(case_uri, SCHEMA.customer, customer_uri)
       graph << RDF.Statement(customer_uri, DCT.identifier, invoice['DataID'].to_s)
       graph << RDF.Statement(customer_uri, VCARD.hasUID, invoice['KlantID'].to_i)
