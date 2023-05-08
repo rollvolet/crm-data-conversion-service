@@ -53,7 +53,7 @@ def link_snapshots invoice, invoice_uri, graph, country_map
   graph << RDF.Statement(cust_address_uri, VCARD.hasCountryName, country) if country
   graph << RDF.Statement(customer_snap_uri, VCARD.hasAddress, cust_address_uri)
 
-  telephones = fetch_telephones_by_customer_id(invoice['KlantId'])
+  telephones = fetch_telephones_by_customer_id(invoice['KlantNummer'])
   telephones.each do |telephone|
     graph << RDF.Statement(customer_snap_uri, VCARD.hasTelephone, RDF::URI(telephone))
   end
@@ -238,6 +238,21 @@ DELETE {
     ?invoice dct:identifier ?crmId .
      BIND(IRI(CONCAT("http://data.rollvolet.be/invoices/", ?crmId)) as ?crmUri)
   }
+}
+
+;
+
+INSERT {
+  GRAPH ?h {
+    ?case ext:invoice ?invoice .
+  }
+} WHERE {
+  GRAPH ?g {
+    ?case a dossier:Dossier ;
+       dossier:Dossier.bestaatUit ?invoice .
+       ?invoice a p2poInvoice:E-FinalInvoice .
+  }
+  BIND(?g as ?h)
 }
 
 ;
