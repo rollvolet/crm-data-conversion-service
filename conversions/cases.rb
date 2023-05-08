@@ -149,17 +149,18 @@ end
 
 
 
-# Create a case for every isolated invoice
+# Create a case for every isolated invoice (that is not a deposit invoice)
 def isolated_invoice_cases_to_triplestore client, timestamp
   graph = RDF::Graph.new
 
   invoices = client.execute(%{
 SELECT l.FactuurId, l.KlantID, k.DataID, c.DataID as ContactId, b.DataID as GebouwId
 FROM TblFactuur l
+LEFT JOIN TblVoorschotFactuur vf ON vf.VoorschotFactuurID = l.FactuurId
 LEFT JOIN tblData k ON l.KlantID = k.ID AND k.DataType = 'KLA'
 LEFT JOIN tblData c ON l.ContactID  = c.ID AND l.KlantID = c.ParentID AND c.DataType = 'CON'
 LEFT JOIN tblData b ON l.GebouwID  = b.ID AND l.KlantID = b.ParentID AND b.DataType = 'GEB'
-WHERE l.MuntEenheid = 'EUR' AND l.InterventionId IS NULL AND l.OfferteID IS NULL
+WHERE l.MuntEenheid = 'EUR' AND l.InterventionId IS NULL AND l.OfferteID IS NULL AND vf.VoorschotId IS NULL
 })
   count = 0
   invoices.each_with_index do |invoice, i|
