@@ -10,10 +10,11 @@ end
 
 # Create a case for every request
 def request_cases_to_triplestore client, timestamp
+  vat_rate_map = fetch_vat_rates()
   graph = RDF::Graph.new
 
   requests = client.execute(%{
-SELECT l.AanvraagID, k.DataID, l.KlantID, l.GebouwID, l.ContactID, c.DataID as ContactId, b.DataID as GebouwId, o.OfferteID as OfferteId, o.Besteld, f.FactuurId
+SELECT l.AanvraagID, k.DataID, l.KlantID, l.GebouwID, l.ContactID, c.DataID as ContactId, b.DataID as GebouwId, o.OfferteID as OfferteId, o.Besteld, f.FactuurId, o.BtwId, o.Referentie, o.Opmerking, o.Produktiebon
 FROM TblAanvraag l
 LEFT JOIN tblData k ON l.KlantID = k.ID AND k.DataType = 'KLA'
 LEFT JOIN tblData c ON l.ContactID = c.ID AND l.KlantID = c.ParentID AND c.DataType = 'CON'
@@ -66,8 +67,14 @@ LEFT JOIN TblFactuur f ON f.OfferteID = o.OfferteID AND f.MuntEenheid = 'EUR'
       graph << RDF.Statement(case_uri, MU_EXT.invoice, invoice_uri)
       graph << RDF.Statement(invoice_uri, DCT.identifier, request['FactuurId'].to_s)
     end
+    if request['BtwId']
+      vat_rate = vat_rate_map[request['BtwId'].to_s]
+      graph << RDF.Statement(case_uri, P2PO_PRICE.hasVATCategoryCode, vat_rate) if vat_rate
+    end
 
-    ## TODO add deposit-invoices
+    graph << RDF.Statement(case_uri, FRAPO.hasReferenceNumber, request['Referentie']) if request['Referentie']
+    graph << RDF.Statement(case_uri, SKOS.comment, request['Opmerking']) if request['Opmerking']
+    graph << RDF.Statement(case_uri, CRM.hasProductionTicket, RDF::Literal.new(request['Produktiebon'], datatype: RDF::URI("http://mu.semte.ch/vocabularies/typed-literals/boolean")))
 
     if ((i + 1) % 1000 == 0)
       Mu.log.info "Processed #{i + 1} records. Will write to file"
@@ -87,10 +94,11 @@ end
 
 # Create a case for every intervention
 def intervention_cases_to_triplestore client, timestamp
+  vat_rate_map = fetch_vat_rates()
   graph = RDF::Graph.new
 
   interventions = client.execute(%{
-SELECT l.Id, k.DataID, l.CustomerId, c.DataID as ContactId, b.DataID as GebouwId, f.FactuurId
+SELECT l.Id, k.DataID, l.CustomerId, c.DataID as ContactId, b.DataID as GebouwId, f.FactuurId, f.BtwId, f.Opmerking, f.Referentie
 FROM TblIntervention l
 LEFT JOIN tblData k ON l.CustomerId = k.ID AND k.DataType = 'KLA'
 LEFT JOIN tblData c ON l.ContactId  = c.ID AND l.CustomerId  = c.ParentID AND c.DataType = 'CON'
@@ -131,6 +139,13 @@ LEFT JOIN TblFactuur f ON f.InterventionId = l.Id  AND f.MuntEenheid = 'EUR'
       graph << RDF.Statement(case_uri, MU_EXT.invoice, invoice_uri)
       graph << RDF.Statement(invoice_uri, DCT.identifier, intervention['FactuurId'].to_s)
     end
+    if intervention['BtwId']
+      vat_rate = vat_rate_map[intervention['BtwId'].to_s]
+      graph << RDF.Statement(case_uri, P2PO_PRICE.hasVATCategoryCode, vat_rate) if vat_rate
+    end
+
+    graph << RDF.Statement(case_uri, FRAPO.hasReferenceNumber, intervention['Referentie']) if intervention['Referentie']
+    graph << RDF.Statement(case_uri, SKOS.comment, intervention['Opmerking']) if intervention['Opmerking']
 
     if ((i + 1) % 1000 == 0)
       Mu.log.info "Processed #{i + 1} records. Will write to file"
@@ -151,10 +166,11 @@ end
 
 # Create a case for every isolated invoice (that is not a deposit invoice)
 def isolated_invoice_cases_to_triplestore client, timestamp
+  vat_rate_map = fetch_vat_rates()
   graph = RDF::Graph.new
 
   invoices = client.execute(%{
-SELECT l.FactuurId, l.KlantID, k.DataID, c.DataID as ContactId, b.DataID as GebouwId
+SELECT l.FactuurId, l.KlantID, k.DataID, c.DataID as ContactId, b.DataID as GebouwId, l.BtwId, l.Opmerking, l.Referentie
 FROM TblFactuur l
 LEFT JOIN TblVoorschotFactuur vf ON vf.VoorschotFactuurID = l.FactuurId
 LEFT JOIN tblData k ON l.KlantID = k.ID AND k.DataType = 'KLA'
@@ -191,6 +207,13 @@ WHERE l.MuntEenheid = 'EUR' AND l.InterventionId IS NULL AND l.OfferteID IS NULL
       graph << RDF.Statement(case_uri, CRM.building, building_uri)
       graph << RDF.Statement(building_uri, DCT.identifier, invoice['GebouwId'].to_s)
     end
+    if invoice['BtwId']
+      vat_rate = vat_rate_map[invoice['BtwId'].to_s]
+      graph << RDF.Statement(case_uri, P2PO_PRICE.hasVATCategoryCode, vat_rate) if vat_rate
+    end
+
+    graph << RDF.Statement(case_uri, FRAPO.hasReferenceNumber, invoice['Referentie']) if invoice['Referentie']
+    graph << RDF.Statement(case_uri, SKOS.comment, invoice['Opmerking']) if invoice['Opmerking']
 
     if ((i + 1) % 1000 == 0)
       Mu.log.info "Processed #{i + 1} records. Will write to file"
