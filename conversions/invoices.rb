@@ -220,6 +220,7 @@ def remove_old_invoice_case_links_sparql_query
   timestamp = DateTime.now.strftime("%Y%m%d%H%M%S")
 
   q = %{
+PREFIX schema: <http://schema.org/>
 PREFIX dossier: <https://data.vlaanderen.be/ns/dossier#>
 PREFIX dct: <http://purl.org/dc/terms/>
 PREFIX ext: <http://mu.semte.ch/vocabularies/ext/>
@@ -296,7 +297,33 @@ DELETE {
      ?work prov:wasInfluencedBy ?crmUri ; a <http://data.rollvolet.be/vocabularies/crm/TechnicalWork> .
   }
 }
+
+;
+
+DELETE {
+  GRAPH <http://mu.semte.ch/graphs/rollvolet> {
+    ?s p2poInvoice:hasTotalLineNetAmount  ?amount .
   }
+} INSERT {
+  GRAPH <http://mu.semte.ch/graphs/rollvolet> {
+    ?s p2poInvoice:hasTotalLineNetAmount  ?sum .
+  }
+}
+WHERE {
+  {
+     SELECT DISTINCT ?s ?amount SUM(?lineAmount) as ?sum WHERE {
+       GRAPH <http://mu.semte.ch/graphs/rollvolet> {
+         ?s a p2poInvoice:E-FinalInvoice ; p2poInvoice:hasTotalLineNetAmount  ?amount .
+         ?s p2poInvoice:hasInvoiceLine ?line .
+         ?line schema:amount ?lineAmount .
+      }
+    }
+  }
+  ?s p2poInvoice:invoiceNumber ?number .
+  FILTER (ABS(?amount - ?sum) > 1)
+}  ORDER BY ?number
+  }
+
 
   write_query("#{timestamp}-remove-old-invoice-links-sensitive", q)
 end
