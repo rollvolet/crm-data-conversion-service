@@ -18,7 +18,7 @@ def fetch_telephones_by_customer_id id
   telephones.map { |t| t[:uri].value }
 end
 
-def link_snapshots invoice, invoice_uri, graph, country_map
+def link_snapshots invoice, invoice_uri, graph, country_map, language_map
   # Link customer snapshot
   customer_uri = RDF::URI(BASE_URI % { :resource => 'customers', :id => invoice['KlantNummer'].to_s })
   customer_snap_uuid = Mu.generate_uuid()
@@ -38,6 +38,7 @@ def link_snapshots invoice, invoice_uri, graph, country_map
   graph << RDF.Statement(customer_snap_uri, VCARD.hasFN, customer_snap_name)
   graph << RDF.Statement(customer_snap_uri, SCHEMA.vatID, invoice['KlantBTWNummer'].gsub(/\W/, '')) if invoice['KlantBTWNummer']
   graph << RDF.Statement(customer_snap_uri, DCT.created, invoice['Datum'])
+  graph << RDF.Statement(customer_snap_uri, VCARD.hasLanguage, language_map[invoice['KlantTaalID'].to_s]) if invoice['KlantTaalID']
   graph << RDF.Statement(invoice_uri, P2PO_INVOICE.hasBuyer, customer_snap_uri)
   graph << RDF.Statement(customer_snap_uri, PROV.hadPrimarySource, customer_uri)
 
@@ -69,6 +70,7 @@ def link_snapshots invoice, invoice_uri, graph, country_map
     graph << RDF.Statement(contact_snap_uri, VCARD.hasUID, invoice['ContactId'])
     graph << RDF.Statement(contact_snap_uri, VCARD.hasFN, contact_snap_name)
     graph << RDF.Statement(contact_snap_uri, DCT.created, invoice['Datum'])
+    graph << RDF.Statement(customer_snap_uri, VCARD.hasLanguage, language_map[invoice['ContactTaalID'].to_s]) if invoice['ContactTaalID']
     graph << RDF.Statement(invoice_uri, P2PO_INVOICE.hasBuyerContactPoint, contact_snap_uri)
     graph << RDF.Statement(contact_snap_uri, PROV.hadPrimarySource, contact_uri)
 
@@ -117,10 +119,11 @@ def invoices_to_triplestore client
   graph = RDF::Graph.new
   vat_rate_map = fetch_vat_rates()
   country_map = fetch_countries()
+  language_map = fetch_languages()
   timestamp = DateTime.now.strftime("%Y%m%d%H%M%S")
 
   invoices = client.execute(%{
-SELECT i.FactuurId, i.Nummer, i.CreditNota, i.Datum, i.VervalDag, i.Geboekt, i.BetaalDatum, i.Afgesloten, i.BtwId, i.Bedrag, i.BasisBedrag, i.BTWBedrag, i.MuntEenheid, i.Origin, i.DocumentOutro, i.Referentie, i.Opmerking, i.Produktiebon, i.Attest, i.AttestTerug, COALESCE(i.OfferteID, vf.OfferteID) as OfferteID, i.KlantID as KlantNummer, k.DataID as KlantId, p.Omschrijving as Aanspreking, k.PrintVoor, c.DataID as ContactId, b.DataID as GebouwId, i.KlantFirma, i.KlantNaam, i.KlantPrefix, i.KlantSuffix, i.KlantAdres1, i.KlantAdres2, i.KlantAdres3, i.KlantPostcode, i.KlantGemeente, i.KlantLandId, i.KlantBTWNummer, i.ContactNaam, i.ContactPrefix, i.ContactSuffix, i.ContactAdres1, i.ContactAdres2, i.ContactAdres3, i.ContactPostcode, i.ContactGemeente, i.ContactLandId, i.GebouwNaam, i.GebouwPrefix, i.GebouwSuffix, i.GebouwAdres1, i.GebouwAdres2, i.GebouwAdres3, i.GebouwPostcode, i.GebouwGemeente, i.GebouwLandId, vf.VoorschotId, Voorschot.VoorschotTotaal
+SELECT i.FactuurId, i.Nummer, i.CreditNota, i.Datum, i.VervalDag, i.Geboekt, i.BetaalDatum, i.Afgesloten, i.BtwId, i.Bedrag, i.BasisBedrag, i.BTWBedrag, i.MuntEenheid, i.Origin, i.DocumentOutro, i.Referentie, i.Opmerking, i.Produktiebon, i.Attest, i.AttestTerug, COALESCE(i.OfferteID, vf.OfferteID) as OfferteID, i.KlantID as KlantNummer, k.DataID as KlantId, p.Omschrijving as Aanspreking, k.PrintVoor, c.DataID as ContactId, b.DataID as GebouwId, i.KlantFirma, i.KlantNaam, i.KlantPrefix, i.KlantSuffix, i.KlantAdres1, i.KlantAdres2, i.KlantAdres3, i.KlantPostcode, i.KlantGemeente, i.KlantLandId, i.KlantTaalID, i.KlantBTWNummer, i.ContactNaam, i.ContactPrefix, i.ContactSuffix, i.ContactAdres1, i.ContactAdres2, i.ContactAdres3, i.ContactPostcode, i.ContactGemeente, i.ContactLandId, i.ContactTaalID, i.GebouwNaam, i.GebouwPrefix, i.GebouwSuffix, i.GebouwAdres1, i.GebouwAdres2, i.GebouwAdres3, i.GebouwPostcode, i.GebouwGemeente, i.GebouwLandId, vf.VoorschotId, Voorschot.VoorschotTotaal
 FROM TblFactuur i
 LEFT JOIN TblVoorschotFactuur vf ON vf.VoorschotFactuurID = i.FactuurId
 LEFT JOIN tblData k ON i.KlantID = k.ID AND k.DataType = 'KLA'
@@ -196,7 +199,7 @@ WHERE i.MuntEenheid = 'EUR'
     end
 
     # Link snapshots
-    link_snapshots invoice, invoice_uri, graph, country_map
+    link_snapshots invoice, invoice_uri, graph, country_map, language_map
 
     # TODO add link between invoice and credit-note in case of credit-note
 

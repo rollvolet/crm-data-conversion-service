@@ -15,6 +15,14 @@ def fetch_countries
   country_map
 end
 
+def fetch_languages
+  language_map = {}
+  languages = Mu.query("SELECT ?id ?uri FROM <http://mu.semte.ch/graphs/public> WHERE { ?uri a <http://schema.org/Language> ; <http://purl.org/dc/terms/identifier> ?id . }")
+  languages.each { |solution| language_map[solution[:id].value] = solution[:uri] }
+  Mu.log.info "Build language map #{language_map.inspect}"
+  language_map
+end
+
 def fetch_product_units
   {
     'NONE' => { nl: '', fr: '', separator: '' },
