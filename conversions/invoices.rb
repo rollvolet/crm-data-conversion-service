@@ -36,7 +36,7 @@ def link_snapshots invoice, invoice_uri, graph, country_map
   graph << RDF.Statement(customer_snap_uri, DCT.type, customer_snap_type)
   graph << RDF.Statement(customer_snap_uri, VCARD.hasUID, invoice['KlantNummer'])
   graph << RDF.Statement(customer_snap_uri, VCARD.hasFN, customer_snap_name)
-  graph << RDF.Statement(customer_snap_uri, SCHEMA.vatID, invoice['KlantBTWNummer']) if invoice['KlantBTWNummer']
+  graph << RDF.Statement(customer_snap_uri, SCHEMA.vatID, invoice['KlantBTWNummer'].gsub(/\W/, '')) if invoice['KlantBTWNummer']
   graph << RDF.Statement(customer_snap_uri, DCT.created, invoice['Datum'])
   graph << RDF.Statement(invoice_uri, P2PO_INVOICE.hasBuyer, customer_snap_uri)
   graph << RDF.Statement(customer_snap_uri, PROV.hadPrimarySource, customer_uri)
