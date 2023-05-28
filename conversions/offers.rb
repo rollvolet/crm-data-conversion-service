@@ -100,11 +100,6 @@ WHERE o.MuntOfferte = 'EUR' AND o.MuntBestel = 'EUR'
       else
         graph << RDF.Statement(case_uri, SCHEMA.deliveryMethod, delivery_method_pickup)
       end
-
-      if offer['AfgeslotenBestelling']
-        graph << RDF.Statement(case_uri, ADMS.status, RDF::URI('http://data.rollvolet.be/concepts/2ffb1b3c-7932-4369-98ac-37539efd2cbe'))
-        graph << RDF.Statement(case_uri, CRM.cancellationReason, offer['RedenAfsluiten']) if offer['RedenAfsluiten']
-      end
     end
 
     if ((i + 1) % 1000 == 0)

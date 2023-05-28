@@ -14,7 +14,7 @@ def request_cases_to_triplestore client, timestamp
   graph = RDF::Graph.new
 
   requests = client.execute(%{
-SELECT l.AanvraagID, k.DataID, l.KlantID, l.GebouwID, l.ContactID, c.DataID as ContactId, b.DataID as GebouwId, o.OfferteID as OfferteId, o.Besteld, f.FactuurId, o.BtwId, o.Referentie, o.Opmerking, o.Produktiebon
+SELECT l.AanvraagID, l.CancellationDate, l.CancellationReason, k.DataID, l.KlantID, l.GebouwID, l.ContactID, c.DataID as ContactId, b.DataID as GebouwId, o.OfferteID as OfferteId, o.Besteld, o.AfgeslotenBestelling, o.RedenAfsluiten, f.FactuurId, o.BtwId, o.Referentie, o.Opmerking, o.Produktiebon
 FROM TblAanvraag l
 LEFT JOIN tblData k ON l.KlantID = k.ID AND k.DataType = 'KLA'
 LEFT JOIN tblData c ON l.ContactID = c.ID AND l.KlantID = c.ParentID AND c.DataType = 'CON'
@@ -71,6 +71,22 @@ LEFT JOIN TblFactuur f ON f.OfferteID = o.OfferteID AND f.MuntEenheid = 'EUR'
       vat_rate = vat_rate_map[request['BtwId'].to_s]
       graph << RDF.Statement(case_uri, P2PO_PRICE.hasVATCategoryCode, vat_rate) if vat_rate
     end
+    if request['CancellationDate'] or request['AfgeslotenBestelling']
+      activity_uuid = Mu.generate_uuid()
+      activity_uri = RDF::URI(BASE_URI % { :resource => 'activities', :id => activity_uuid })
+      graph << RDF.Statement(activity_uri, RDF.type, PROV.Activity)
+      graph << RDF.Statement(activity_uri, MU_CORE.uuid, activity_uuid)
+      graph << RDF.Statement(activity_uri, DCT.type, RDF::URI('http://data.rollvolet.be/concepts/5b0eb3d6-bbfb-449a-88c1-ec23ae341dca'))
+      graph << RDF.Statement(activity_uri, PROV.startedAtTime, request['CancellationDate'].to_date) if request['CancellationDate']
+      if request['CancellationReason']
+        graph << RDF.Statement(activity_uri, DCT.description, request['CancellationReason'])
+      elsif request['RedenAfsluiten']
+        graph << RDF.Statement(activity_uri, DCT.description, request['RedenAfsluiten'])
+      end
+      graph << RDF.Statement(case_uri, ADMS.status, RDF::URI('http://data.rollvolet.be/concepts/2ffb1b3c-7932-4369-98ac-37539efd2cbe'))
+    else
+      graph << RDF.Statement(case_uri, ADMS.status, RDF::URI('http://data.rollvolet.be/concepts/2fb2bd3f-1df3-4c45-94a0-69a6af2ab735'))
+    end
 
     graph << RDF.Statement(case_uri, FRAPO.hasReferenceNumber, request['Referentie']) if request['Referentie']
     graph << RDF.Statement(case_uri, SKOS.comment, request['Opmerking']) if request['Opmerking']
@@ -98,7 +114,7 @@ def intervention_cases_to_triplestore client, timestamp
   graph = RDF::Graph.new
 
   interventions = client.execute(%{
-SELECT l.Id, k.DataID, l.CustomerId, c.DataID as ContactId, b.DataID as GebouwId, f.FactuurId, f.BtwId, f.Opmerking, f.Referentie
+SELECT l.Id, k.DataID, l.CustomerId, c.DataID as ContactId, b.DataID as GebouwId, f.FactuurId, f.BtwId, f.Opmerking, f.Referentie, l.CancellationDate, l.CancellationReason
 FROM TblIntervention l
 LEFT JOIN tblData k ON l.CustomerId = k.ID AND k.DataType = 'KLA'
 LEFT JOIN tblData c ON l.ContactId  = c.ID AND l.CustomerId  = c.ParentID AND c.DataType = 'CON'
@@ -143,6 +159,19 @@ LEFT JOIN TblFactuur f ON f.InterventionId = l.Id  AND f.MuntEenheid = 'EUR'
       vat_rate = vat_rate_map[intervention['BtwId'].to_s]
       graph << RDF.Statement(case_uri, P2PO_PRICE.hasVATCategoryCode, vat_rate) if vat_rate
     end
+    if request['CancellationDate']
+      activity_uuid = Mu.generate_uuid()
+      activity_uri = RDF::URI(BASE_URI % { :resource => 'activities', :id => activity_uuid })
+      graph << RDF.Statement(activity_uri, RDF.type, PROV.Activity)
+      graph << RDF.Statement(activity_uri, MU_CORE.uuid, activity_uuid)
+      graph << RDF.Statement(activity_uri, DCT.type, RDF::URI('http://data.rollvolet.be/concepts/5b0eb3d6-bbfb-449a-88c1-ec23ae341dca'))
+      graph << RDF.Statement(activity_uri, PROV.startedAtTime, request['CancellationDate'].to_date)
+      graph << RDF.Statement(activity_uri, DCT.description, request['CancellationReason']) if request['CancellationReason']
+      graph << RDF.Statement(case_uri, ADMS.status, RDF::URI('http://data.rollvolet.be/concepts/2ffb1b3c-7932-4369-98ac-37539efd2cbe'))
+    else
+      graph << RDF.Statement(case_uri, ADMS.status, RDF::URI('http://data.rollvolet.be/concepts/2fb2bd3f-1df3-4c45-94a0-69a6af2ab735'))
+    end
+
 
     graph << RDF.Statement(case_uri, FRAPO.hasReferenceNumber, intervention['Referentie']) if intervention['Referentie']
     graph << RDF.Statement(case_uri, SKOS.comment, intervention['Opmerking']) if intervention['Opmerking']
@@ -170,7 +199,7 @@ def isolated_invoice_cases_to_triplestore client, timestamp
   graph = RDF::Graph.new
 
   invoices = client.execute(%{
-SELECT l.FactuurId, l.KlantID, k.DataID, c.DataID as ContactId, b.DataID as GebouwId, l.BtwId, l.Opmerking, l.Referentie
+SELECT l.FactuurId, l.Nummer, l.KlantID, k.DataID, c.DataID as ContactId, b.DataID as GebouwId, l.BtwId, l.Opmerking, l.Referentie
 FROM TblFactuur l
 LEFT JOIN TblVoorschotFactuur vf ON vf.VoorschotFactuurID = l.FactuurId
 LEFT JOIN tblData k ON l.KlantID = k.ID AND k.DataType = 'KLA'
@@ -185,7 +214,7 @@ WHERE l.MuntEenheid = 'EUR' AND l.InterventionId IS NULL AND l.OfferteID IS NULL
 
     graph << RDF.Statement(case_uri, RDF.type, DOSSIER.Dossier)
     graph << RDF.Statement(case_uri, MU_CORE.uuid, uuid)
-    graph << RDF.Statement(case_uri, DCT.identifier, "F-#{invoice['FactuurId']}")
+    graph << RDF.Statement(case_uri, DCT.identifier, "F-#{invoice['Nummer']}")
 
     invoice_uri = RDF::URI(BASE_URI % { :resource => 'invoices', :id => invoice['FactuurId'].to_s })
     graph << RDF.Statement(case_uri, MU_EXT.invoice, invoice_uri)
