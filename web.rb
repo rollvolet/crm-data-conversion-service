@@ -16,6 +16,9 @@ P2PO_INVOICE = RDF::Vocabulary.new("https://purl.org/p2p-o/invoice#")
 P2PO_DOCUMENT = RDF::Vocabulary.new("https://purl.org/p2p-o/document#")
 P2PO_PRICE = RDF::Vocabulary.new("https://purl.org/p2p-o/price#")
 SKOS = RDF::Vocabulary.new("http://www.w3.org/2004/02/skos/core#")
+TMO = RDF::Vocabulary.new("http://www.semanticdesktop.org/ontologies/2008/05/20/tmo#")
+OWL = RDF::Vocabulary.new("http://www.w3.org/2002/07/owl#")
+ADMS = RDF::Vocabulary.new("http://www.w3.org/ns/adms#")
 
 BASE_URI = 'http://data.rollvolet.be/%{resource}/%{id}'
 BOOLEAN_DT = RDF::URI('http://mu.semte.ch/vocabularies/typed-literals/boolean')
@@ -55,6 +58,7 @@ require_relative 'conversions/employees'
 require_relative 'conversions/working-hours'
 require_relative 'conversions/cases'
 require_relative 'conversions/invoices'
+require_relative 'conversions/offers'
 
 post '/legacy-calculation-lines' do
   sql_client = create_sql_client()
@@ -143,5 +147,11 @@ end
 post '/invoices-to-triplestore' do
   sql_client = create_sql_client()
   invoices_to_triplestore(sql_client)
+  status 204
+end
+
+post '/offers-to-triplestore' do
+  sql_client = create_sql_client()
+  offers_and_orders_to_triplestore(sql_client)
   status 204
 end
