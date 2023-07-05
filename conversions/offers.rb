@@ -202,8 +202,28 @@ DELETE {
   }
 }
 
+
+DELETE {
+  GRAPH <http://mu.semte.ch/graphs/rollvolet> {
+     ?visit dct:subject ?crmUri .
+  }
+} INSERT {
+  GRAPH <http://mu.semte.ch/graphs/rollvolet> {
+     ?visit dct:subject ?order .
+  }
+} WHERE {
+  GRAPH <http://mu.semte.ch/graphs/rollvolet> {
+    ?order a p2poDocument:PurchaseOrder ;
+      dct:identifier ?crmId .
+    BIND(IRI(CONCAT("http://data.rollvolet.be/orders/", ?crmId)) as ?crmUri)
+    ?visit dct:subject ?crmUri ; a ncal:Event .
+  }
+}
+
+;
+
   }
 
 
-  write_query("#{timestamp}-remove-old-invoice-links-sensitive", q)
+  write_query("#{timestamp}-remove-old-offers-and-orders-links-sensitive", q)
 end

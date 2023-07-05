@@ -34,7 +34,7 @@ def link_snapshots invoice, invoice_uri, graph, country_map, language_map
   graph << RDF.Statement(customer_snap_uri, RDF.type, CRM.CustomerSnapshot)
   graph << RDF.Statement(customer_snap_uri, MU_CORE.uuid, customer_snap_uuid)
   graph << RDF.Statement(customer_snap_uri, DCT.type, customer_snap_type)
-  graph << RDF.Statement(customer_snap_uri, VCARD.hasUID, invoice['KlantNummer'])
+  graph << RDF.Statement(customer_snap_uri, VCARD.hasUID, invoice['KlantNummer'].to_i)
   graph << RDF.Statement(customer_snap_uri, VCARD.hasFN, customer_snap_name)
   graph << RDF.Statement(customer_snap_uri, SCHEMA.vatID, invoice['KlantBTWNummer'].gsub(/\W/, '')) if invoice['KlantBTWNummer']
   graph << RDF.Statement(customer_snap_uri, DCT.created, invoice['Datum'])
@@ -67,7 +67,7 @@ def link_snapshots invoice, invoice_uri, graph, country_map, language_map
     contact_snap_name = ['ContactPrefix', 'ContactNaam', 'ContactSuffix'].map { |f| invoice[f] }.filter { |v| v }.join " "
     graph << RDF.Statement(contact_snap_uri, RDF.type, CRM.ContactSnapshot)
     graph << RDF.Statement(contact_snap_uri, MU_CORE.uuid, contact_snap_uuid)
-    graph << RDF.Statement(contact_snap_uri, VCARD.hasUID, invoice['ContactId'])
+    graph << RDF.Statement(contact_snap_uri, SCHEMA.position, invoice['ContactId'].to_i)
     graph << RDF.Statement(contact_snap_uri, VCARD.hasFN, contact_snap_name)
     graph << RDF.Statement(contact_snap_uri, DCT.created, invoice['Datum'])
     graph << RDF.Statement(customer_snap_uri, VCARD.hasLanguage, language_map[invoice['ContactTaalID'].to_s]) if invoice['ContactTaalID']
@@ -95,7 +95,7 @@ def link_snapshots invoice, invoice_uri, graph, country_map, language_map
     building_snap_name = ['GebouwPrefix', 'GebouwNaam', 'GebouwSuffix'].map { |f| invoice[f] }.filter { |v| v }.join " "
     graph << RDF.Statement(building_snap_uri, RDF.type, CRM.BuildingSnapshot)
     graph << RDF.Statement(building_snap_uri, MU_CORE.uuid, building_snap_uuid)
-    graph << RDF.Statement(building_snap_uri, VCARD.hasUID, invoice['GebouwId'])
+    graph << RDF.Statement(building_snap_uri, SCHEMA.position, invoice['GebouwId'].to_i)
     graph << RDF.Statement(building_snap_uri, VCARD.hasFN, building_snap_name)
     graph << RDF.Statement(building_snap_uri, DCT.created, invoice['Datum'])
     graph << RDF.Statement(invoice_uri, CRM.hasBuyerBuilding, building_snap_uri)

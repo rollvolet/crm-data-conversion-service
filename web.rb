@@ -19,6 +19,8 @@ SKOS = RDF::Vocabulary.new("http://www.w3.org/2004/02/skos/core#")
 TMO = RDF::Vocabulary.new("http://www.semanticdesktop.org/ontologies/2008/05/20/tmo#")
 OWL = RDF::Vocabulary.new("http://www.w3.org/2002/07/owl#")
 ADMS = RDF::Vocabulary.new("http://www.w3.org/ns/adms#")
+NCO = RDF::Vocabulary.new("http://www.semanticdesktop.org/ontologies/2007/03/22/nco#")
+GEBOUW = RDF::Vocabulary.new("https://data.vlaanderen.be/ns/gebouw#")
 
 BASE_URI = 'http://data.rollvolet.be/%{resource}/%{id}'
 BOOLEAN_DT = RDF::URI('http://mu.semte.ch/vocabularies/typed-literals/boolean')
@@ -61,6 +63,7 @@ require_relative 'conversions/invoices'
 require_relative 'conversions/offers'
 require_relative 'conversions/requests'
 require_relative 'conversions/interventions'
+require_relative 'conversions/customers'
 
 post '/legacy-calculation-lines' do
   sql_client = create_sql_client()
@@ -170,3 +173,8 @@ post '/interventions-to-triplestore' do
   status 204
 end
 
+post '/customers-to-triplestore' do
+  sql_client = create_sql_client()
+  customers_to_triplestore(sql_client)
+  status 204
+end
