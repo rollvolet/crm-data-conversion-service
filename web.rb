@@ -59,6 +59,8 @@ require_relative 'conversions/working-hours'
 require_relative 'conversions/cases'
 require_relative 'conversions/invoices'
 require_relative 'conversions/offers'
+require_relative 'conversions/requests'
+require_relative 'conversions/interventions'
 
 post '/legacy-calculation-lines' do
   sql_client = create_sql_client()
@@ -155,3 +157,16 @@ post '/offers-to-triplestore' do
   offers_and_orders_to_triplestore(sql_client)
   status 204
 end
+
+post '/requests-to-triplestore' do
+  sql_client = create_sql_client()
+  requests_to_triplestore(sql_client)
+  status 204
+end
+
+post '/interventions-to-triplestore' do
+  sql_client = create_sql_client()
+  interventions_to_triplestore(sql_client)
+  status 204
+end
+

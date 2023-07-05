@@ -23,6 +23,13 @@ def fetch_languages
   language_map
 end
 
+def fetch_way_of_entries
+  way_of_entries_map = {}
+  entries = Mu.query("SELECT ?id ?uri FROM <http://mu.semte.ch/graphs/public> WHERE { ?uri a <http://www.w3.org/2004/02/skos/core#Concept> ; <http://www.w3.org/2004/02/skos/core#inScheme> <http://data.rollvolet.be/concept-scheme/9d8087db-4307-4f6d-82f3-a414a5cb2076> ; <http://purl.org/dc/terms/identifier> ?id . }")
+  entries.each { |solution| way_of_entries_map[solution[:id].value.to_s] = solution[:uri] }
+  Mu.log.info "Build way of entries map #{way_of_entries_map.inspect}"
+  way_of_entries_map
+end
 def fetch_product_units
   {
     'NONE' => { nl: '', fr: '', separator: '' },
