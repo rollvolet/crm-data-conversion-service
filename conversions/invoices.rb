@@ -172,7 +172,6 @@ WHERE i.MuntEenheid = 'EUR'
     graph << RDF.Statement(invoice_uri, P2PO_INVOICE.paymentDueDate, invoice['VervalDag'].to_date) if invoice['VervalDag']
     graph << RDF.Statement(invoice_uri, CRM.bookingDate, invoice['Geboekt'].to_date) if invoice['Geboekt']
     graph << RDF.Statement(invoice_uri, CRM.paymentDate, invoice['BetaalDatum'].to_date) if invoice['BetaalDatum']
-    graph << RDF.Statement(invoice_uri, PROV.invalidatedAtTime, invoice['Afgesloten'].to_date) if invoice['Afgesloten']
     graph << RDF.Statement(invoice_uri, P2PO_INVOICE.hasTotalLineNetAmount, RDF::Literal.new(BigDecimal(invoice['BasisBedrag'].to_s))) if invoice['BasisBedrag']
     graph << RDF.Statement(invoice_uri, P2PO_INVOICE.hasTotalDueForPaymentAmount, RDF::Literal.new(BigDecimal(invoice['Bedrag'].to_s))) if invoice['Bedrag']
     graph << RDF.Statement(invoice_uri, P2PO_INVOICE.hasTotalVATAmount, RDF::Literal.new(BigDecimal(invoice['BTWBedrag'].to_s))) if invoice['BTWBedrag']
@@ -190,6 +189,16 @@ WHERE i.MuntEenheid = 'EUR'
     graph << RDF.Statement(case_uri, FRAPO.hasReferenceNumber, invoice['Referentie']) if invoice['Referentie']
     graph << RDF.Statement(case_uri, SKOS.comment, invoice['Opmerking']) if invoice['Opmerking']
     graph << RDF.Statement(case_uri, P2PO_PRICE.hasVATCategoryCode, vat_rate) if vat_rate
+    if invoice['Afgesloten']
+      activity_uuid = Mu.generate_uuid()
+      activity_uri = RDF::URI(BASE_URI % { :resource => 'activities', :id => activity_uuid })
+      graph << RDF.Statement(activity_uri, RDF.type, PROV.Activity)
+      graph << RDF.Statement(activity_uri, MU_CORE.uuid, activity_uuid)
+      graph << RDF.Statement(activity_uri, DCT.type, RDF::URI('http://data.rollvolet.be/concepts/5b0eb3d6-bbfb-449a-88c1-ec23ae341dca'))
+      graph << RDF.Statement(activity_uri, PROV.startedAtTime, request['Afgesloten'].to_date)
+      graph << RDF.Statement(case_uri, PROV.wasInvalidatedBy, activity_uri)
+      graph << RDF.Statement(case_uri, ADMS.status, RDF::URI('http://data.rollvolet.be/concepts/2ffb1b3c-7932-4369-98ac-37539efd2cbe'))
+    end
 
     unless is_deposit_invoice
       has_production_ticket = if invoice['Produktiebon'] then "true" else "false" end
