@@ -29,7 +29,7 @@ WHERE r.Aanvraagdatum > '2000-01-01 00:00:00.000'
     graph << RDF.Statement(request_uri, RDF.type, CRM.Request)
     graph << RDF.Statement(request_uri, MU_CORE.uuid, uuid)
     graph << RDF.Statement(request_uri, DCT.identifier, request['AanvraagID'].to_s)
-    graph << RDF.Statement(request_uri, SCHEMA.identifier, request['AanvraagID'].to_s)
+    graph << RDF.Statement(request_uri, SCHEMA.identifier, request['AanvraagID'].to_i)
     graph << RDF.Statement(request_uri, DCT.issued, request['Aanvraagdatum'].to_date)
     graph << RDF.Statement(request_uri, DCT.description, request['Beschrijving']) if request['Beschrijving']
     graph << RDF.Statement(request_uri, SKOS.comment, request['Opmerking']) if request['Opmerking']

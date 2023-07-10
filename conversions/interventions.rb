@@ -40,7 +40,7 @@ LEFT JOIN (
     graph << RDF.Statement(intervention_uri, RDF.type, CRM.Intervention)
     graph << RDF.Statement(intervention_uri, MU_CORE.uuid, uuid)
     graph << RDF.Statement(intervention_uri, DCT.identifier, intervention['Id'].to_s)
-    graph << RDF.Statement(intervention_uri, SCHEMA.identifier, intervention['Id'].to_s)
+    graph << RDF.Statement(intervention_uri, SCHEMA.identifier, intervention['Id'].to_i)
     graph << RDF.Statement(intervention_uri, DCT.issued, intervention['Date'].to_date)
     graph << RDF.Statement(intervention_uri, DCT.description, intervention['Description']) if intervention['Description']
     graph << RDF.Statement(intervention_uri, SKOS.comment, intervention['Comment']) if intervention['Comment']
