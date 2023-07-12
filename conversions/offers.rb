@@ -202,6 +202,7 @@ DELETE {
   }
 }
 
+;
 
 DELETE {
   GRAPH <http://mu.semte.ch/graphs/rollvolet> {
@@ -220,7 +221,6 @@ DELETE {
   }
 }
 
-;
 
   }
 

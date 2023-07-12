@@ -115,6 +115,25 @@ DELETE {
 
 DELETE {
   GRAPH <http://mu.semte.ch/graphs/rollvolet> {
+    ?request prov:hadPrimarySource ?crmUri .
+  }
+} INSERT {
+  GRAPH <http://mu.semte.ch/graphs/rollvolet> {
+    ?request prov:hadPrimarySource ?intervention .
+  }
+} WHERE {
+  GRAPH <http://mu.semte.ch/graphs/rollvolet> {
+    ?request a crm:Request ; prov:hadPrimarySource ?crmUri .
+    ?crmUri dct:identifier ?crmId .
+    ?intervention a crm:Intervention ;
+      dct:identifier ?crmId .
+  }
+}
+
+;
+
+DELETE {
+  GRAPH <http://mu.semte.ch/graphs/rollvolet> {
      ?visit dct:subject ?crmUri .
   }
 } INSERT {
