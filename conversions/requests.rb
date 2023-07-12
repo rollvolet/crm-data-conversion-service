@@ -33,9 +33,6 @@ WHERE r.Aanvraagdatum > '2000-01-01 00:00:00.000'
     graph << RDF.Statement(request_uri, DCT.issued, request['Aanvraagdatum'].to_date)
     graph << RDF.Statement(request_uri, DCT.description, request['Beschrijving']) if request['Beschrijving']
     graph << RDF.Statement(request_uri, SKOS.comment, request['Opmerking']) if request['Opmerking']
-    requires_visit = if request['Bezoek'] then "true" else "false" end
-    graph << RDF.Statement(request_uri, CRM.requiresVisit, RDF::Literal.new(requires_visit, datatype: RDF::URI("http://mu.semte.ch/vocabularies/typed-literals/boolean")))
-
     graph << RDF.Statement(case_uri, DOSSIER['Dossier.bestaatUit'], request_uri)
     if request['Bezoeker']
       visitor_uri = employee_map[request['Bezoeker']]
