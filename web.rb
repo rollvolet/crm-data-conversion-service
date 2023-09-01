@@ -143,12 +143,6 @@ post '/cases-to-triplestore' do
   status 204
 end
 
-post '/deposit-invoices-to-triplestore' do
-  sql_client = create_sql_client()
-  deposit_invoices_to_triplestore(sql_client)
-  status 204
-end
-
 post '/invoices-to-triplestore' do
   sql_client = create_sql_client()
   invoices_to_triplestore(sql_client)
