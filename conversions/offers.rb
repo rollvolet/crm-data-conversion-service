@@ -40,7 +40,7 @@ LEFT JOIN (
   INNER JOIN TblPersoneel e ON e.PersoneelId = t.EmployeeId
   GROUP BY t.OrderId
 ) AS Technicians ON Technicians.OrderId = o.OfferteID
-WHERE o.MuntOfferte = 'EUR' AND o.MuntBestel = 'EUR'
+WHERE o.MuntOfferte = 'EUR' AND (o.MuntBestel = 'EUR' OR o.MuntBestel IS NULL)
 })
 
   count = 0
@@ -198,7 +198,7 @@ DELETE {
     ?crmUri dct:identifier ?crmId .
      FILTER(STRSTARTS(STR(?crmUri), "http://data.rollvolet.be/orders/"))
      FILTER(?order != ?crmUri)
-     ?line prov:wasDeriverdFrom ?crmUri ; a <http://data.rollvolet.be/vocabularies/crm/Invoiceline> .
+     ?line prov:wasDerivedFrom ?crmUri ; a <http://data.rollvolet.be/vocabularies/crm/Invoiceline> .
   }
 }
 
