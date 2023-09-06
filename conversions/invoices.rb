@@ -159,6 +159,7 @@ WHERE i.MuntEenheid = 'EUR'
     if is_deposit_invoice
       invoice_uri = RDF::URI(BASE_URI % { :resource => 'deposit-invoices', :id => uuid })
       graph << RDF.Statement(invoice_uri, RDF.type, P2PO_INVOICE['E-PrePaymentInvoice'])
+      graph << RDF.Statement(invoice_uri, SKOS.comment, invoice['Opmerking']) if invoice['Opmerking']
     else
       invoice_uri = RDF::URI(BASE_URI % { :resource => 'invoices', :id => uuid })
       graph << RDF.Statement(invoice_uri, RDF.type, P2PO_INVOICE['E-FinalInvoice'])
@@ -187,7 +188,6 @@ WHERE i.MuntEenheid = 'EUR'
     # Enrich case with common fields
     graph << RDF.Statement(case_uri, DOSSIER['Dossier.bestaatUit'], invoice_uri)
     graph << RDF.Statement(case_uri, FRAPO.hasReferenceNumber, invoice['Referentie']) if invoice['Referentie']
-    graph << RDF.Statement(case_uri, SKOS.comment, invoice['Opmerking']) if invoice['Opmerking']
     graph << RDF.Statement(case_uri, P2PO_PRICE.hasVATCategoryCode, vat_rate) if vat_rate
     if invoice['Afgesloten']
       activity_uuid = Mu.generate_uuid()
@@ -201,6 +201,7 @@ WHERE i.MuntEenheid = 'EUR'
     end
 
     unless is_deposit_invoice
+      graph << RDF.Statement(case_uri, SKOS.comment, invoice['Opmerking']) if invoice['Opmerking']
       has_production_ticket = if invoice['Produktiebon'] then "true" else "false" end
       graph << RDF.Statement(case_uri, CRM.hasProductionTicket, RDF::Literal.new(has_production_ticket, datatype: RDF::URI("http://mu.semte.ch/vocabularies/typed-literals/boolean")))
 
