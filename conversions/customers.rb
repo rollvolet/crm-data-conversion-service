@@ -84,6 +84,7 @@ WHERE d.DataType = '#{scope}'
     graph << RDF.Statement(record_uri, VCARD.hasGivenName, record['Prefix'].to_s) if record['Prefix']
     graph << RDF.Statement(record_uri, VCARD.hasFamilyName, record['Naam'].to_s) if record['Naam']
     graph << RDF.Statement(record_uri, VCARD.hasHonorificSuffix, record['Suffix'].to_s) if record['Suffix']
+    graph << RDF.Statement(record_uri, SCHEMA.vatID, record['BTWNummer'].gsub(/\W/, '')) if record['BTWNummer']
     graph << RDF.Statement(record_uri, VCARD.hasUrl, record['URL'].to_s) if record['URL']
     graph << RDF.Statement(record_uri, VCARD.hasNote, record['Opmerking'].to_s) if record['Opmerking']
     graph << RDF.Statement(record_uri, DCT.created, record['RegistratieDatum']) if record['Registratiedatum']
