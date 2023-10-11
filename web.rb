@@ -1,5 +1,6 @@
 # coding: utf-8
 require 'tiny_tds'
+require 'rdf/turtle'
 
 DCT = RDF::Vocabulary.new("http://purl.org/dc/terms/")
 SCHEMA = RDF::Vocabulary.new("http://schema.org/")
