@@ -20,7 +20,7 @@ ORDER BY v.Bezoekdatum DESC
   visits = client.execute(sql_query)
   count = 0
   visits.each_with_index do |visit, i|
-    uuid = Mu.generate_uuid()
+    uuid = Mu::generate_uuid()
     visit_uri = RDF::URI(BASE_URI % { :resource => "calendar-events", :id => uuid })
     visit_date = visit["Bezoekdatum"].to_date
     request_id = visit["AanvraagID"]
@@ -59,7 +59,7 @@ ORDER BY v.Bezoekdatum DESC
     graph << RDF.Statement(request_uri, DCT.identifier, request_id.to_s)
 
     if ((i + 1) % 1000 == 0)
-      Mu.log.info "Processed #{i + 1} records. Will write to file"
+      Mu::log.info "Processed #{i + 1} records. Will write to file"
       write_graph("#{timestamp}-request-calendar-events-#{i + 1}-sensitive", graph)
       graph = RDF::Graph.new
     end
@@ -70,7 +70,7 @@ ORDER BY v.Bezoekdatum DESC
   # Writing last iteration to file
   write_graph("#{timestamp}-request-calendar-events-#{count + 1}-sensitive", graph)
 
-  Mu.log.info "Generated #{count + 1} calendar-events for requests"
+  Mu::log.info "Generated #{count + 1} calendar-events for requests"
 end
 
 def order_calendar_events_to_triplestore client
@@ -105,7 +105,7 @@ ORDER BY o.VastgelegdeDatum DESC"
   visits = client.execute(sql_query)
   count = 0
   visits.each_with_index do |visit, i|
-    uuid = Mu.generate_uuid()
+    uuid = Mu::generate_uuid()
     visit_uri = RDF::URI(BASE_URI % { :resource => "calendar-events", :id => uuid })
     visit_date = Date.parse visit["VastgelegdeDatum"]
     request_id = visit["AanvraagId"]
@@ -148,7 +148,7 @@ ORDER BY o.VastgelegdeDatum DESC"
     graph << RDF.Statement(order_uri, DCT.identifier, order_id.to_s)
 
     if ((i + 1) % 1000 == 0)
-      Mu.log.info "Processed #{i + 1} records. Will write to file"
+      Mu::log.info "Processed #{i + 1} records. Will write to file"
       write_graph("#{timestamp}-order-calendar-events-#{i + 1}-sensitive", graph)
       graph = RDF::Graph.new
     end
@@ -159,7 +159,7 @@ ORDER BY o.VastgelegdeDatum DESC"
   # Writing last iteration to file
   write_graph("#{timestamp}-order-calendar-events-#{count + 1}-sensitive", graph)
 
-  Mu.log.info "Generated #{count + 1} calendar-events for orders"
+  Mu::log.info "Generated #{count + 1} calendar-events for orders"
 end
 
 
@@ -191,7 +191,7 @@ WHERE v.[Date] IS NOT NULL
   visits = client.execute(sql_query)
   count = 0
   visits.each_with_index do |visit, i|
-    uuid = Mu.generate_uuid()
+    uuid = Mu::generate_uuid()
     visit_uri = RDF::URI(BASE_URI % { :resource => "calendar-events", :id => uuid })
     visit_date = visit["Date"].to_date
     intervention_id = visit["InterventionId"]
@@ -237,7 +237,7 @@ WHERE v.[Date] IS NOT NULL
     graph << RDF.Statement(intervention_uri, DCT.identifier, intervention_id.to_s)
 
     if ((i + 1) % 1000 == 0)
-      Mu.log.info "Processed #{i + 1} records. Will write to file"
+      Mu::log.info "Processed #{i + 1} records. Will write to file"
       write_graph("#{timestamp}-intervention-calendar-events-#{i + 1}-sensitive", graph)
       graph = RDF::Graph.new
     end
@@ -248,5 +248,5 @@ WHERE v.[Date] IS NOT NULL
   # Writing last iteration to file
   write_graph("#{timestamp}-intervention-calendar-events-#{count + 1}-sensitive", graph)
 
-  Mu.log.info "Generated #{count + 1} calendar-events for interventions"
+  Mu::log.info "Generated #{count + 1} calendar-events for interventions"
 end

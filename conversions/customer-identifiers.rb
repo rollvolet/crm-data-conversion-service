@@ -11,7 +11,7 @@ def customer_identifiers_to_triplestore client
     graph << RDF.Statement(customer_uri, DCT.identifier, customer['DataID'].to_s)
 
     if ((i + 1) % 10000 == 0)
-      Mu.log.info "Processed #{i + 1} records. Will write to file"
+      Mu::log.info "Processed #{i + 1} records. Will write to file"
       write_graph("#{timestamp}-customer-identifiers-#{i + 1}-sensitive", graph)
       graph = RDF::Graph.new
     end
@@ -22,7 +22,7 @@ def customer_identifiers_to_triplestore client
   # Writing last iteration to file
   write_graph("#{timestamp}-customer-identifiers-#{count + 1}-sensitive", graph)
 
-  Mu.log.info "Generated #{count + 1} customer-identifiers"
+  Mu::log.info "Generated #{count + 1} customer-identifiers"
 
   fix_customer_uri_on_telephones_sparql_query
 end

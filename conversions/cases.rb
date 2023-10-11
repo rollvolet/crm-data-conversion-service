@@ -24,7 +24,7 @@ LEFT JOIN TblFactuur f ON f.OfferteID = o.OfferteID AND f.MuntEenheid = 'EUR'
 })
   count = 0
   requests.each_with_index do |request, i|
-    uuid = Mu.generate_uuid()
+    uuid = Mu::generate_uuid()
     case_uri = RDF::URI(BASE_URI % { :resource => 'cases', :id => uuid })
 
     graph << RDF.Statement(case_uri, RDF.type, DOSSIER.Dossier)
@@ -72,7 +72,7 @@ LEFT JOIN TblFactuur f ON f.OfferteID = o.OfferteID AND f.MuntEenheid = 'EUR'
       graph << RDF.Statement(case_uri, P2PO_PRICE.hasVATCategoryCode, vat_rate) if vat_rate
     end
     if request['CancellationDate'] or request['AfgeslotenBestelling']
-      activity_uuid = Mu.generate_uuid()
+      activity_uuid = Mu::generate_uuid()
       activity_uri = RDF::URI(BASE_URI % { :resource => 'activities', :id => activity_uuid })
       graph << RDF.Statement(activity_uri, RDF.type, PROV.Activity)
       graph << RDF.Statement(activity_uri, MU_CORE.uuid, activity_uuid)
@@ -92,7 +92,7 @@ LEFT JOIN TblFactuur f ON f.OfferteID = o.OfferteID AND f.MuntEenheid = 'EUR'
     graph << RDF.Statement(case_uri, CRM.hasProductionTicket, RDF::Literal.new(request['Produktiebon'], datatype: RDF::URI("http://mu.semte.ch/vocabularies/typed-literals/boolean")))
 
     if ((i + 1) % 1000 == 0)
-      Mu.log.info "Processed #{i + 1} records. Will write to file"
+      Mu::log.info "Processed #{i + 1} records. Will write to file"
       write_graph("#{timestamp}-request-cases-#{i + 1}-sensitive", graph)
       graph = RDF::Graph.new
     end
@@ -103,7 +103,7 @@ LEFT JOIN TblFactuur f ON f.OfferteID = o.OfferteID AND f.MuntEenheid = 'EUR'
   # Writing last iteration to file
   write_graph("#{timestamp}-request-cases-#{count}-sensitive", graph)
 
-  Mu.log.info "Generated #{count} cases for requests"
+  Mu::log.info "Generated #{count} cases for requests"
 end
 
 
@@ -122,7 +122,7 @@ LEFT JOIN TblFactuur f ON f.InterventionId = l.Id  AND f.MuntEenheid = 'EUR'
 })
   count = 0
   interventions.each_with_index do |intervention, i|
-    uuid = Mu.generate_uuid()
+    uuid = Mu::generate_uuid()
     case_uri = RDF::URI(BASE_URI % { :resource => 'cases', :id => uuid })
 
     graph << RDF.Statement(case_uri, RDF.type, DOSSIER.Dossier)
@@ -159,7 +159,7 @@ LEFT JOIN TblFactuur f ON f.InterventionId = l.Id  AND f.MuntEenheid = 'EUR'
       graph << RDF.Statement(case_uri, P2PO_PRICE.hasVATCategoryCode, vat_rate) if vat_rate
     end
     if request['CancellationDate']
-      activity_uuid = Mu.generate_uuid()
+      activity_uuid = Mu::generate_uuid()
       activity_uri = RDF::URI(BASE_URI % { :resource => 'activities', :id => activity_uuid })
       graph << RDF.Statement(activity_uri, RDF.type, PROV.Activity)
       graph << RDF.Statement(activity_uri, MU_CORE.uuid, activity_uuid)
@@ -176,7 +176,7 @@ LEFT JOIN TblFactuur f ON f.InterventionId = l.Id  AND f.MuntEenheid = 'EUR'
     graph << RDF.Statement(case_uri, SKOS.comment, intervention['Opmerking']) if intervention['Opmerking']
 
     if ((i + 1) % 1000 == 0)
-      Mu.log.info "Processed #{i + 1} records. Will write to file"
+      Mu::log.info "Processed #{i + 1} records. Will write to file"
       write_graph("#{timestamp}-intervention-cases-#{i + 1}-sensitive", graph)
       graph = RDF::Graph.new
     end
@@ -187,7 +187,7 @@ LEFT JOIN TblFactuur f ON f.InterventionId = l.Id  AND f.MuntEenheid = 'EUR'
   # Writing last iteration to file
   write_graph("#{timestamp}-intervention-cases-#{count}-sensitive", graph)
 
-  Mu.log.info "Generated #{count} cases for interventions"
+  Mu::log.info "Generated #{count} cases for interventions"
 end
 
 
@@ -208,7 +208,7 @@ WHERE l.MuntEenheid = 'EUR' AND l.InterventionId IS NULL AND l.OfferteID IS NULL
 })
   count = 0
   invoices.each_with_index do |invoice, i|
-    uuid = Mu.generate_uuid()
+    uuid = Mu::generate_uuid()
     case_uri = RDF::URI(BASE_URI % { :resource => 'cases', :id => uuid })
 
     graph << RDF.Statement(case_uri, RDF.type, DOSSIER.Dossier)
@@ -244,7 +244,7 @@ WHERE l.MuntEenheid = 'EUR' AND l.InterventionId IS NULL AND l.OfferteID IS NULL
     graph << RDF.Statement(case_uri, SKOS.comment, invoice['Opmerking']) if invoice['Opmerking']
 
     if ((i + 1) % 1000 == 0)
-      Mu.log.info "Processed #{i + 1} records. Will write to file"
+      Mu::log.info "Processed #{i + 1} records. Will write to file"
       write_graph("#{timestamp}-isolated-invoice-cases-#{i + 1}-sensitive", graph)
       graph = RDF::Graph.new
     end
@@ -255,7 +255,7 @@ WHERE l.MuntEenheid = 'EUR' AND l.InterventionId IS NULL AND l.OfferteID IS NULL
   # Writing last iteration to file
   write_graph("#{timestamp}-isolated-invoice-cases-#{count}-sensitive", graph)
 
-  Mu.log.info "Generated #{count} cases for isolated invoices"
+  Mu::log.info "Generated #{count} cases for isolated invoices"
 end
 
 

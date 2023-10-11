@@ -11,7 +11,7 @@ def customers_to_triplestore client
 end
 
 def link_address graph, record, record_uri, country_map
-  address_uuid = Mu.generate_uuid()
+  address_uuid = Mu::generate_uuid()
   address_uri = RDF::URI(BASE_URI % { :resource => 'addresses', :id => address_uuid })
   street = ['Adres1', 'Adres2', 'Adres3'].map { |f| record[f] }.filter { |v| v }
   country = country_map[record['LandId'].to_s]
@@ -47,7 +47,7 @@ WHERE d.DataType = '#{scope}'
   resource_type = if scope == 'KLA' then 'customers' elsif scope == 'CON' then 'contacts' else 'buildings' end
 
   records.each_with_index do |record, i|
-    uuid = Mu.generate_uuid()
+    uuid = Mu::generate_uuid()
     record_uri = RDF::URI(BASE_URI % { :resource => resource_type, :id => uuid })
 
     if scope == 'KLA'
@@ -100,7 +100,7 @@ WHERE d.DataType = '#{scope}'
     link_address graph, record, record_uri, country_map
 
     if ((i + 1) % 1000 == 0)
-      Mu.log.info "Processed #{i} records. Will write to file"
+      Mu::log.info "Processed #{i} records. Will write to file"
       write_graph("#{timestamp}-#{resource_type}-#{i}-sensitive", graph)
       graph = RDF::Graph.new
     end
@@ -111,7 +111,7 @@ WHERE d.DataType = '#{scope}'
   # Writing last iteration to file
   write_graph("#{timestamp}-#{resource_type}-#{count}-sensitive", graph)
 
-  Mu.log.info "Generated #{count} #{resource_type}"
+  Mu::log.info "Generated #{count} #{resource_type}"
 end
 
 def remove_old_customer_links_sparql_query

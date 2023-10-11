@@ -30,20 +30,20 @@ ROLLVOLET_GRAPH = 'http://mu.semte.ch/graphs/rollvolet'
 
 def create_sql_client
   client = TinyTds::Client.new username: 'sa', password: ENV['SQL_PASSWORD'], host: 'sql-database', database: 'Klanten'
-  Mu.log.info "Connected to SQL database" if client.active?
+  Mu::log.info "Connected to SQL database" if client.active?
   client
 end
 
 def write_graph(filename, graph)
   file_path = File.join(OUTPUT_FOLDER, "#{filename}.ttl")
-  Mu.log.info "Writing generated data to file #{file_path}"
+  Mu::log.info "Writing generated data to file #{file_path}"
   RDF::Writer.open(file_path, format: :ttl) { |writer| writer << graph }
   File.open("#{OUTPUT_FOLDER}/#{filename}.graph", "w+") { |f| f.puts(ROLLVOLET_GRAPH) }
 end
 
 def write_query(filename, sparql_query)
   file_path = File.join(OUTPUT_FOLDER, "#{filename}.sparql")
-  Mu.log.info "Writing SPARQL query to file #{file_path}"
+  Mu::log.info "Writing SPARQL query to file #{file_path}"
   File.open(file_path, "w+") { |f| f.puts(sparql_query) }
 end
 
