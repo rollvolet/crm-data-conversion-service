@@ -122,6 +122,7 @@ def remove_old_offer_case_links_sparql_query
   timestamp = DateTime.now.strftime("%Y%m%d%H%M%S")
 
   q = %{
+PREFIX ncal: <http://www.semanticdesktop.org/ontologies/2007/04/02/ncal#>
 PREFIX schema: <http://schema.org/>
 PREFIX dossier: <https://data.vlaanderen.be/ns/dossier#>
 PREFIX dct: <http://purl.org/dc/terms/>
