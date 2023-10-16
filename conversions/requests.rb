@@ -123,9 +123,11 @@ INSERT {
   }
 } WHERE {
   GRAPH <http://mu.semte.ch/graphs/rollvolet> {
+    ?case dossier:Dossier.bestaatUit ?request, ?offer .
+    FILTER (STRSTARTS(STR(?request), "http://data.rollvolet.be/requests"))
+    FILTER (STRSTARTS(STR(?offer), "http://data.rollvolet.be/offers"))
     ?request a crm:Request .
     ?offer a schema:Offer .
-    ?case dossier:Dossier.bestaatUit ?request, ?offer .
     ?offer dct:source ?source .
   }
 }
