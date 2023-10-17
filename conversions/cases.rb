@@ -85,6 +85,8 @@ LEFT JOIN TblFactuur f ON f.OfferteID = o.OfferteID AND f.MuntEenheid = 'EUR'
       end
       graph << RDF.Statement(case_uri, PROV.wasInvalidatedBy, activity_uri)
       graph << RDF.Statement(case_uri, ADMS.status, RDF::URI('http://data.rollvolet.be/concepts/2ffb1b3c-7932-4369-98ac-37539efd2cbe'))
+    else
+      graph << RDF.Statement(case_uri, ADMS.status, RDF::URI('http://data.rollvolet.be/concepts/2fb2bd3f-1df3-4c45-94a0-69a6af2ab735'))
     end
 
     graph << RDF.Statement(case_uri, FRAPO.hasReferenceNumber, request['Referentie']) if request['Referentie']
