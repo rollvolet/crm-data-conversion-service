@@ -87,7 +87,7 @@ WHERE d.DataType = '#{scope}'
     graph << RDF.Statement(record_uri, SCHEMA.vatID, record['BTWNummer'].gsub(/\W/, '')) if record['BTWNummer']
     graph << RDF.Statement(record_uri, VCARD.hasUrl, record['URL'].to_s) if record['URL']
     graph << RDF.Statement(record_uri, VCARD.hasNote, record['Opmerking'].to_s) if record['Opmerking']
-    graph << RDF.Statement(record_uri, DCT.created, record['RegistratieDatum']) if record['Registratiedatum']
+    graph << RDF.Statement(record_uri, DCT.created, record['RegistratieDatum']) if record['RegistratieDatum']
     print_prefix = if record['PrintPrefix'] then "true" else "false" end
     graph << RDF.Statement(record_uri, CRM.printPrefix, RDF::Literal.new(print_prefix, datatype: RDF::URI("http://mu.semte.ch/vocabularies/typed-literals/boolean")))
     print_suffix = if record['PrintSuffix'] then "true" else "false" end
