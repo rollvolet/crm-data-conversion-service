@@ -51,6 +51,9 @@ WHERE d.DataType = '#{scope}'
     record_uri = RDF::URI(BASE_URI % { :resource => resource_type, :id => uuid })
 
     if scope == 'KLA'
+      old_record_uri = RDF::URI(BASE_URI % { :resource => resource_type, :id => record['ID'].to_s })
+      graph << RDF.Statement(old_record_uri, VCARD.hasUID, record['ID'].to_i)
+
       graph << RDF.Statement(record_uri, RDF.type, VCARD.VCard)
       graph << RDF.Statement(record_uri, DCT.type, if record['Firma'] then VCARD.Organization else VCARD.Individual end)
       graph << RDF.Statement(record_uri, VCARD.hasUID, record['ID'].to_i)
@@ -65,7 +68,7 @@ WHERE d.DataType = '#{scope}'
     else
       graph << RDF.Statement(record_uri, RDF.type, if scope == 'CON' then NCO.Contact else GEBOUW.Gebouw end)
       graph << RDF.Statement(record_uri, SCHEMA.position, record['ID'].to_i)
-      graph << RDF.Statement(record_uri, CRM.parentId, record['ParentID'].to_s)
+      graph << RDF.Statement(record_uri, CRM.parentId, record['ParentID'].to_i)
     end
 
     graph << RDF.Statement(record_uri, MU_CORE.uuid, uuid)
@@ -231,7 +234,6 @@ DELETE {
     ?contact a nco:Contact ;
        dct:identifier ?crmId .
     BIND(IRI(CONCAT("http://data.rollvolet.be/contacts/", ?crmId)) as ?crmUri)
-    ?contact dct:identifier ?crmId .
     ?case a dossier:Dossier ; crm:contact ?crmUri .
   }
 }
