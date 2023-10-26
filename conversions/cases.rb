@@ -31,6 +31,14 @@ LEFT JOIN TblFactuur f ON f.OfferteID = o.OfferteID AND f.MuntEenheid = 'EUR'
     graph << RDF.Statement(case_uri, MU_CORE.uuid, uuid)
     graph << RDF.Statement(case_uri, DCT.identifier, "AD-#{request['AanvraagID']}")
 
+    structured_identifier_uuid = Mu::generate_uuid()
+    structured_identifier_uri = RDF::URI(BASE_URI % { :resource => 'structured-identifiers', :id => structured_identifier_uuid })
+    graph << RDF.Statement(structured_identifier_uri, RDF.type, GENERIEK.GestructureerdeIdentificator)
+    graph << RDF.Statement(structured_identifier_uri, MU_CORE.uuid, structured_identifier_uuid)
+    graph << RDF.Statement(structured_identifier_uri, GENERIEK.naamruimte, 'AD')
+    graph << RDF.Statement(structured_identifier_uri, GENERIEK.lokaleIdentificator, "#{request['AanvraagID']}")
+    graph << RDF.Statement(case_uri, GENERIEK.gestructureerdeIdentificator, structured_identifier_uri)
+
     request_uri = RDF::URI(BASE_URI % { :resource => 'requests', :id => request['AanvraagID'].to_s })
     graph << RDF.Statement(case_uri, MU_EXT.request, request_uri)
     graph << RDF.Statement(request_uri, DCT.identifier, request['AanvraagID'].to_s)
@@ -131,6 +139,14 @@ LEFT JOIN TblFactuur f ON f.InterventionId = l.Id  AND f.MuntEenheid = 'EUR'
     graph << RDF.Statement(case_uri, MU_CORE.uuid, uuid)
     graph << RDF.Statement(case_uri, DCT.identifier, "IR-#{intervention['Id']}")
 
+    structured_identifier_uuid = Mu::generate_uuid()
+    structured_identifier_uri = RDF::URI(BASE_URI % { :resource => 'structured-identifiers', :id => structured_identifier_uuid })
+    graph << RDF.Statement(structured_identifier_uri, RDF.type, GENERIEK.GestructureerdeIdentificator)
+    graph << RDF.Statement(structured_identifier_uri, MU_CORE.uuid, structured_identifier_uuid)
+    graph << RDF.Statement(structured_identifier_uri, GENERIEK.naamruimte, 'IR')
+    graph << RDF.Statement(structured_identifier_uri, GENERIEK.lokaleIdentificator, "#{intervention['Id']}")
+    graph << RDF.Statement(case_uri, GENERIEK.gestructureerdeIdentificator, structured_identifier_uri)
+
     intervention_uri = RDF::URI(BASE_URI % { :resource => 'interventions', :id => intervention['Id'].to_s })
     graph << RDF.Statement(case_uri, MU_EXT.intervention, intervention_uri)
     graph << RDF.Statement(intervention_uri, DCT.identifier, intervention['Id'].to_s)
@@ -216,6 +232,14 @@ WHERE l.MuntEenheid = 'EUR' AND l.InterventionId IS NULL AND l.OfferteID IS NULL
     graph << RDF.Statement(case_uri, RDF.type, DOSSIER.Dossier)
     graph << RDF.Statement(case_uri, MU_CORE.uuid, uuid)
     graph << RDF.Statement(case_uri, DCT.identifier, "F-#{invoice['Nummer']}")
+
+    structured_identifier_uuid = Mu::generate_uuid()
+    structured_identifier_uri = RDF::URI(BASE_URI % { :resource => 'structured-identifiers', :id => structured_identifier_uuid })
+    graph << RDF.Statement(structured_identifier_uri, RDF.type, GENERIEK.GestructureerdeIdentificator)
+    graph << RDF.Statement(structured_identifier_uri, MU_CORE.uuid, structured_identifier_uuid)
+    graph << RDF.Statement(structured_identifier_uri, GENERIEK.naamruimte, 'F')
+    graph << RDF.Statement(structured_identifier_uri, GENERIEK.lokaleIdentificator, "#{invoice['Nummer']}")
+    graph << RDF.Statement(case_uri, GENERIEK.gestructureerdeIdentificator, structured_identifier_uri)
 
     invoice_uri = RDF::URI(BASE_URI % { :resource => 'invoices', :id => invoice['FactuurId'].to_s })
     graph << RDF.Statement(case_uri, MU_EXT.invoice, invoice_uri)

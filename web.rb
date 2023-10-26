@@ -22,6 +22,7 @@ OWL = RDF::Vocabulary.new("http://www.w3.org/2002/07/owl#")
 ADMS = RDF::Vocabulary.new("http://www.w3.org/ns/adms#")
 NCO = RDF::Vocabulary.new("http://www.semanticdesktop.org/ontologies/2007/03/22/nco#")
 GEBOUW = RDF::Vocabulary.new("https://data.vlaanderen.be/ns/gebouw#")
+GENERIEK = RDF::Vocabulary.new("https://data.vlaanderen.be/ns/generiek#")
 
 BASE_URI = 'http://data.rollvolet.be/%{resource}/%{id}'
 BOOLEAN_DT = RDF::URI('http://mu.semte.ch/vocabularies/typed-literals/boolean')
