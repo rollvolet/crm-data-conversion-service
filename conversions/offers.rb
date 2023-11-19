@@ -40,12 +40,12 @@ LEFT JOIN (
   INNER JOIN TblPersoneel e ON e.PersoneelId = t.EmployeeId
   GROUP BY t.OrderId
 ) AS Technicians ON Technicians.OrderId = o.OfferteID
-WHERE o.MuntOfferte = 'EUR' AND (o.MuntBestel = 'EUR' OR o.MuntBestel IS NULL)
+WHERE o.MuntOfferte = 'EUR'
 })
 
   count = 0
   offers.each_with_index do |offer, i|
-    caze = fetch_case_by_order_id offer['OfferteID']
+    caze = fetch_case_by_offer_id offer['OfferteID']
     if caze.nil?
       case_uri = RDF::URI('http://data.rollvolet.be/cases/undefined')
     else
