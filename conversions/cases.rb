@@ -182,8 +182,8 @@ LEFT JOIN TblFactuur f ON f.InterventionId = l.Id  AND f.MuntEenheid = 'EUR'
       graph << RDF.Statement(activity_uri, RDF.type, PROV.Activity)
       graph << RDF.Statement(activity_uri, MU_CORE.uuid, activity_uuid)
       graph << RDF.Statement(activity_uri, DCT.type, RDF::URI('http://data.rollvolet.be/concepts/5b0eb3d6-bbfb-449a-88c1-ec23ae341dca'))
-      graph << RDF.Statement(activity_uri, PROV.startedAtTime, request['CancellationDate'].to_date)
-      graph << RDF.Statement(activity_uri, DCT.description, request['CancellationReason']) if request['CancellationReason']
+      graph << RDF.Statement(activity_uri, PROV.startedAtTime, intervention['CancellationDate'].to_date)
+      graph << RDF.Statement(activity_uri, DCT.description, intervention['CancellationReason']) if intervention['CancellationReason']
       graph << RDF.Statement(case_uri, PROV.wasInvalidatedBy, activity_uri)
       graph << RDF.Statement(case_uri, ADMS.status, RDF::URI('http://data.rollvolet.be/concepts/2ffb1b3c-7932-4369-98ac-37539efd2cbe'))
     else
