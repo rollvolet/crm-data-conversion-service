@@ -107,11 +107,12 @@ DELETE {
   }
 } WHERE {
   GRAPH <http://mu.semte.ch/graphs/rollvolet> {
+    ?visit a ncal:Event ; dct:subject ?crmUri .
+    ?crmUri dct:identifier ?crmId .
     ?request a crm:Request .
     ?request dct:identifier ?crmId .
-    BIND(IRI(CONCAT("http://data.rollvolet.be/requests/", ?crmId)) as ?crmUri)
-    ?crmUri dct:identifier ?crmId .
-    ?visit a ncal:Event ; dct:subject ?crmUri .
+    FILTER (STRSTARTS(STR(?request), "http://data.rollvolet.be/requests"))
+    FILTER(?request != ?crmUri)
   }
 }
 

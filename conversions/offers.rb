@@ -194,12 +194,12 @@ DELETE {
   }
 } WHERE {
   GRAPH <http://mu.semte.ch/graphs/rollvolet> {
+    ?line prov:wasDerivedFrom ?crmUri ; a <http://data.rollvolet.be/vocabularies/crm/Invoiceline> .
+    ?crmUri dct:identifier ?crmId .
     ?order a p2poDocument:PurchaseOrder ;
       dct:identifier ?crmId .
-    ?crmUri dct:identifier ?crmId .
      FILTER(STRSTARTS(STR(?crmUri), "http://data.rollvolet.be/orders/"))
      FILTER(?order != ?crmUri)
-     ?line prov:wasDerivedFrom ?crmUri ; a <http://data.rollvolet.be/vocabularies/crm/Invoiceline> .
   }
 }
 
@@ -215,10 +215,12 @@ DELETE {
   }
 } WHERE {
   GRAPH <http://mu.semte.ch/graphs/rollvolet> {
+    ?visit dct:subject ?crmUri ; a ncal:Event .
+    ?crmUri dct:identifier ?crmId .
     ?order a p2poDocument:PurchaseOrder ;
       dct:identifier ?crmId .
-    BIND(IRI(CONCAT("http://data.rollvolet.be/orders/", ?crmId)) as ?crmUri)
-    ?visit dct:subject ?crmUri ; a ncal:Event .
+     FILTER(STRSTARTS(STR(?crmUri), "http://data.rollvolet.be/orders/"))
+     FILTER(?order != ?crmUri)
   }
 }
 
