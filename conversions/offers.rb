@@ -76,8 +76,6 @@ WHERE o.MuntOfferte = 'EUR'
       graph << RDF.Statement(order_uri, TMO.dueDate, try_parse_date_string(offer['VereisteDatum'])) if offer['VereisteDatum']
       graph << RDF.Statement(order_uri, CRM.scheduledNbOfHours, offer['UrenGepland'].to_i) if offer['UrenGepland']
       graph << RDF.Statement(order_uri, CRM.scheduledNbOfPersons, offer['ManGepland'].to_i) if offer['ManGepland']
-      requires_deposit = if offer['VoorschotNodig'] then "true" else "false" end
-      graph << RDF.Statement(order_uri, CRM.requiresDeposit, RDF::Literal.new(requires_deposit, datatype: RDF::URI("http://mu.semte.ch/vocabularies/typed-literals/boolean")))
       is_finished = if offer['ProductKlaar'] then "true" else "false" end
       graph << RDF.Statement(order_uri, CRM.productFinished, RDF::Literal.new(is_finished, datatype: RDF::URI("http://mu.semte.ch/vocabularies/typed-literals/boolean")))
       graph << RDF.Statement(order_uri, DCT.source, if offer['BestelTotaal'] then 'Access' else 'RKB' end)
@@ -100,6 +98,9 @@ WHERE o.MuntOfferte = 'EUR'
       else
         graph << RDF.Statement(case_uri, SCHEMA.deliveryMethod, delivery_method_pickup)
       end
+
+      requires_deposit = if offer['VoorschotNodig'] then "true" else "false" end
+      graph << RDF.Statement(case_uri, CRM.requiresDeposit, RDF::Literal.new(requires_deposit, datatype: RDF::URI("http://mu.semte.ch/vocabularies/typed-literals/boolean")))
     end
 
     if ((i + 1) % 1000 == 0)
